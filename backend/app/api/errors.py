@@ -1,12 +1,15 @@
 """One error envelope for every failure: the contract's `Error` plus a request ID."""
 
 import logging
+import socket
 from typing import Any
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import InterfaceError, OperationalError
+from sqlalchemy.exc import TimeoutError as PoolTimeoutError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
@@ -106,6 +109,26 @@ def install_error_handlers(app: FastAPI) -> None:
             str(exc.detail),
             headers=getattr(exc, "headers", None),
         )
+
+    async def _db_down(request: Request, exc: Exception) -> JSONResponse:
+        log.warning("database unavailable: %s", exc.__class__.__name__)
+        return error_response(
+            request,
+            503,
+            "database_unavailable",
+            "The local database is unavailable; nothing was saved. Try again shortly.",
+            retryable=True,
+        )
+
+    for exc_type in (
+        OperationalError,
+        InterfaceError,
+        PoolTimeoutError,
+        ConnectionError,
+        TimeoutError,
+        socket.gaierror,
+    ):
+        app.add_exception_handler(exc_type, _db_down)
 
     @app.exception_handler(Exception)
     async def _unhandled(request: Request, exc: Exception) -> JSONResponse:

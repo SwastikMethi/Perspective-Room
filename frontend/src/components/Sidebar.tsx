@@ -58,7 +58,9 @@ export function Sidebar({
     <div className="flex h-full flex-col bg-sidebar">
       <div className="flex items-center gap-3 px-4 pt-4 pb-3">
         <Logo />
-        <span className="flex-1 truncate text-[16px] font-semibold whitespace-nowrap">Perspective Room</span>
+        <span className="flex-1 truncate text-[16px] font-semibold whitespace-nowrap">
+          Perspective Room
+        </span>
         {onCollapse && (
           <button
             type="button"

@@ -64,9 +64,10 @@ def _now() -> Mapped[datetime]:
 
 
 class Base(DeclarativeBase):
+    # none_as_null: Python None is SQL NULL (not JSON null), so content CHECKs see real NULLs.
     type_annotation_map = {
-        dict[str, Any]: JSONB,
-        list[Any]: JSONB,
+        dict[str, Any]: JSONB(none_as_null=True),
+        list[Any]: JSONB(none_as_null=True),
         datetime: DateTime(timezone=True),
     }
 

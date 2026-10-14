@@ -14,7 +14,7 @@
     "e2e": "playwright test",
     "gen:api": "openapi-typescript ../handoff/contracts/openapi.yaml -o src/api/schema.d.ts",
     "check:api": "openapi-typescript ../handoff/contracts/openapi.yaml -o /tmp/pr-schema-check.d.ts && diff -q src/api/schema.d.ts /tmp/pr-schema-check.d.ts",
-    "format": "prettier --write src tests ../tests/e2e"
+    "format": "prettier --write src build e2e"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.104.2",

@@ -92,3 +92,43 @@ async def client(app):
 
     async with contract_client(app) as c:
         yield c
+
+
+IDEA = "I want to build an interview-practice app for college students."
+
+
+def idem() -> dict[str, str]:
+    from uuid import uuid4
+
+    return {"Idempotency-Key": str(uuid4())}
+
+
+def turn_body(version: int, message: str = "Help me explore it.", **control) -> dict:
+    base = {
+        "audience": "auto",
+        "target_persona_id": None,
+        "move_override": None,
+        "reply_to_message_id": None,
+        "idea_card_ids": [],
+        "research_override": "auto",
+    }
+    base.update(control)
+    return {"expected_version": version, "message": message, "control": base}
+
+
+@pytest.fixture
+async def new_session(client):
+    async def make(**body):
+        r = await client.post("/api/v1/sessions", json={"idea": IDEA, **body}, headers=idem())
+        assert r.status_code == 201, r.text
+        return r.json()
+
+    return make
+
+
+@pytest.fixture
+async def running_app(app):
+    """The app with its real worker and the configured (demo) pipeline running."""
+    await app.state.runner.start()
+    yield app
+    await app.state.runner.stop()

@@ -17,5 +17,5 @@
     "baseUrl": ".",
     "paths": { "@handoff/*": ["../handoff/*"] }
   },
-  "include": ["src", "build", "vite.config.ts", "playwright.config.ts", "../tests/e2e"]
+  "include": ["src", "build", "e2e", "vite.config.ts", "playwright.config.ts"]
 }

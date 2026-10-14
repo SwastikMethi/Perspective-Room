@@ -20,7 +20,11 @@ export class ApiError extends Error {
   }
 }
 
-export const api = createClient<paths>({ baseUrl: '' })
+export const api = createClient<paths>({
+  // Same origin as the page; fetch resolved per call (so tests can stub it).
+  baseUrl: typeof window === 'undefined' ? '' : window.location.origin,
+  fetch: (request) => globalThis.fetch(request),
+})
 
 export function newIdempotencyKey(): string {
   return crypto.randomUUID()
