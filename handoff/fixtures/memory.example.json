@@ -1,0 +1,22 @@
+{
+  "overview": "The conversation is exploring a small student interview-practice pilot.",
+  "ideas": [
+    {
+      "text": "Test one question followed by one improvement and a retry.",
+      "source_message_ids": [
+        "00000000-0000-4000-8000-000000000202"
+      ],
+      "source_ids": []
+    }
+  ],
+  "open_questions": [
+    {
+      "text": "Which interview skill should be tested first?",
+      "source_message_ids": [
+        "00000000-0000-4000-8000-000000000202"
+      ],
+      "source_ids": []
+    }
+  ],
+  "assumptions": []
+}

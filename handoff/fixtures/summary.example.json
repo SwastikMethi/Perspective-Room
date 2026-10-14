@@ -1,0 +1,65 @@
+{
+  "sections": [
+    {
+      "kind": "directions",
+      "items": [
+        {
+          "text": "Try one question with a feedback-and-retry cycle.",
+          "source_message_ids": [
+            "00000000-0000-4000-8000-000000000202"
+          ],
+          "source_ids": []
+        }
+      ]
+    },
+    {
+      "kind": "disagreements",
+      "items": [
+        {
+          "text": "Private first attempts and peer practice are alternative starting points; both remain hypotheses.",
+          "source_message_ids": [
+            "00000000-0000-4000-8000-000000000203",
+            "00000000-0000-4000-8000-000000000204"
+          ],
+          "source_ids": []
+        }
+      ]
+    },
+    {
+      "kind": "assumptions",
+      "items": [
+        {
+          "text": "Actionable feedback may be the main benefit.",
+          "source_message_ids": [
+            "00000000-0000-4000-8000-000000000202"
+          ],
+          "source_ids": []
+        }
+      ]
+    },
+    {
+      "kind": "questions",
+      "items": [
+        {
+          "text": "Which skill should the pilot target?",
+          "source_message_ids": [
+            "00000000-0000-4000-8000-000000000202"
+          ],
+          "source_ids": []
+        }
+      ]
+    },
+    {
+      "kind": "experiments",
+      "items": [
+        {
+          "text": "Observe whether a student can improve their next answer.",
+          "source_message_ids": [
+            "00000000-0000-4000-8000-000000000202"
+          ],
+          "source_ids": []
+        }
+      ]
+    }
+  ]
+}

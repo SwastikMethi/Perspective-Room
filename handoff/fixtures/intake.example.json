@@ -1,0 +1,11 @@
+{
+  "title_suggestion": "Interview practice for students",
+  "focus": "Find a useful first experiment for student interview practice.",
+  "intent": "brainstorm",
+  "clarifying_question": null,
+  "research_query": null,
+  "research_reason": null,
+  "open_questions": [
+    "What would motivate repeat practice?"
+  ]
+}

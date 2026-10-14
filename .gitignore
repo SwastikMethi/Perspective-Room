@@ -1,0 +1,22 @@
+# secrets and local data
+.env
+.env.*
+!.env.example
+exports/
+backups/
+
+# build and tooling
+node_modules/
+frontend/dist/
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+test-results/
+playwright-report/
+.superpowers/
+
+# OS
+.DS_Store

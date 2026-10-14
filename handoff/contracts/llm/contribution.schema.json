@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Contribution",
+  "type": "object",
+  "properties": {
+    "headline": {
+      "type": "string"
+    },
+    "blocks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "observation",
+              "suggestion",
+              "question",
+              "assumption",
+              "fact",
+              "limitation"
+            ]
+          },
+          "text": {
+            "type": "string"
+          },
+          "source_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "kind",
+          "text",
+          "source_ids"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "referenced_message_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "new_angle": {
+      "type": "string"
+    },
+    "next_question": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "headline",
+    "blocks",
+    "referenced_message_ids",
+    "new_angle",
+    "next_question"
+  ],
+  "additionalProperties": false
+}

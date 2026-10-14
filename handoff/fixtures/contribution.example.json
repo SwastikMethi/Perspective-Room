@@ -1,0 +1,18 @@
+{
+  "headline": "Test whether the feedback changes the next answer",
+  "blocks": [
+    {
+      "kind": "suggestion",
+      "text": "Let a student answer one interview question, receive one specific improvement, and try again. Compare whether the revision becomes clearer.",
+      "source_ids": []
+    },
+    {
+      "kind": "assumption",
+      "text": "This assumes actionable feedback is more valuable than a long simulated interview; a pilot should test that.",
+      "source_ids": []
+    }
+  ],
+  "referenced_message_ids": [],
+  "new_angle": "Use immediate revision as the first usefulness test.",
+  "next_question": "Which interview skill would you test first?"
+}

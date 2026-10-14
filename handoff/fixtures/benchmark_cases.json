@@ -1,0 +1,786 @@
+{
+  "version": "1.0.0",
+  "description": "30 authored evaluation scenarios; no measured results. English-first pilot set, not a validated benchmark.",
+  "cases": [
+    {
+      "id": "case_01",
+      "domain": "product",
+      "idea": "AI interview practice for college students",
+      "constraints": [
+        "Students have limited time; begin with one useful skill."
+      ],
+      "persona_ids": [
+        "strategist",
+        "engineer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: AI interview practice for college students. Students have limited time; begin with one useful skill. Help me explore possibilities.",
+        "How could we test whether feedback helps?",
+        "Suppose students prefer practising with friends. How would you adapt?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_02",
+      "domain": "community",
+      "idea": "A neighborhood tool-sharing service",
+      "constraints": [
+        "Some residents do not use smartphones."
+      ],
+      "persona_ids": [
+        "civic",
+        "mentor",
+        "skeptic"
+      ],
+      "user_turns": [
+        "I have an idea: A neighborhood tool-sharing service. Some residents do not use smartphones. Help me explore possibilities.",
+        "How could the first borrowing experience work?",
+        "What changes if a borrowed tool breaks?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_03",
+      "domain": "work",
+      "idea": "Replace a daily status meeting with an asynchronous update",
+      "constraints": [
+        "The team works across time zones."
+      ],
+      "persona_ids": [
+        "engineer",
+        "customer",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: Replace a daily status meeting with an asynchronous update. The team works across time zones. Help me explore possibilities.",
+        "How do we keep important blockers visible?",
+        "People say written updates are being ignored. What next?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_04",
+      "domain": "creative",
+      "idea": "A local storytelling night for people who have never performed",
+      "constraints": [
+        "Keep participation welcoming and low-pressure."
+      ],
+      "persona_ids": [
+        "explorer",
+        "skeptic",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A local storytelling night for people who have never performed. Keep participation welcoming and low-pressure. Help me explore possibilities.",
+        "How would someone take a first step?",
+        "What if people want to listen but not speak?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_05",
+      "domain": "education",
+      "idea": "A peer learning group for introductory programming",
+      "constraints": [
+        "Participants have very different starting skills."
+      ],
+      "persona_ids": [
+        "mentor",
+        "explorer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A peer learning group for introductory programming. Participants have very different starting skills. Help me explore possibilities.",
+        "How could we avoid leaving beginners behind?",
+        "An experienced member dominates discussions. How should we adapt?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_06",
+      "domain": "wellbeing",
+      "idea": "A workplace initiative encouraging screen breaks",
+      "constraints": [
+        "Participation must be optional."
+      ],
+      "persona_ids": [
+        "health",
+        "mentor",
+        "civic"
+      ],
+      "user_turns": [
+        "I have an idea: A workplace initiative encouraging screen breaks. Participation must be optional. Help me explore possibilities.",
+        "What would make it useful without being intrusive?",
+        "Staff say reminders are distracting. What changes?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_07",
+      "domain": "product",
+      "idea": "A meal-planning app for shared households",
+      "constraints": [
+        "People have different schedules and preferences."
+      ],
+      "persona_ids": [
+        "strategist",
+        "engineer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A meal-planning app for shared households. People have different schedules and preferences. Help me explore possibilities.",
+        "What should the first useful workflow be?",
+        "Housemates rarely agree on a meal. How can the idea change?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_08",
+      "domain": "community",
+      "idea": "A neighborhood book exchange",
+      "constraints": [
+        "There is no permanent staffed location."
+      ],
+      "persona_ids": [
+        "civic",
+        "mentor",
+        "skeptic"
+      ],
+      "user_turns": [
+        "I have an idea: A neighborhood book exchange. There is no permanent staffed location. Help me explore possibilities.",
+        "How would books circulate reliably?",
+        "A small group does most of the organizing. What next?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_09",
+      "domain": "work",
+      "idea": "An internal searchable handbook for new employees",
+      "constraints": [
+        "Some instructions change frequently."
+      ],
+      "persona_ids": [
+        "engineer",
+        "customer",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: An internal searchable handbook for new employees. Some instructions change frequently. Help me explore possibilities.",
+        "What would make people trust an answer?",
+        "The handbook conflicts with a colleague’s advice. How should it respond?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_10",
+      "domain": "creative",
+      "idea": "A collaborative short-story project",
+      "constraints": [
+        "Contributors should retain a recognizable voice."
+      ],
+      "persona_ids": [
+        "explorer",
+        "skeptic",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A collaborative short-story project. Contributors should retain a recognizable voice. Help me explore possibilities.",
+        "How would collaboration stay coherent?",
+        "Two contributors disagree on the ending. How can both views help?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_11",
+      "domain": "education",
+      "idea": "A study planner for students with part-time jobs",
+      "constraints": [
+        "Schedules can change at short notice."
+      ],
+      "persona_ids": [
+        "mentor",
+        "explorer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A study planner for students with part-time jobs. Schedules can change at short notice. Help me explore possibilities.",
+        "How should the plan handle interruptions?",
+        "Users feel guilty when they miss tasks. What changes?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_12",
+      "domain": "wellbeing",
+      "idea": "A quiet shared space at a busy office",
+      "constraints": [
+        "Space is limited and access must be fair."
+      ],
+      "persona_ids": [
+        "health",
+        "mentor",
+        "civic"
+      ],
+      "user_turns": [
+        "I have an idea: A quiet shared space at a busy office. Space is limited and access must be fair. Help me explore possibilities.",
+        "How could a small trial work?",
+        "Demand exceeds capacity. What trade-offs should we explore?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_13",
+      "domain": "product",
+      "idea": "A repair booking service for household items",
+      "constraints": [
+        "Customers want predictable timing."
+      ],
+      "persona_ids": [
+        "strategist",
+        "engineer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A repair booking service for household items. Customers want predictable timing. Help me explore possibilities.",
+        "What would make the first booking trustworthy?",
+        "Repair duration is hard to estimate. How do we adapt?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_14",
+      "domain": "community",
+      "idea": "A volunteer ride coordination board",
+      "constraints": [
+        "Volunteers have irregular availability."
+      ],
+      "persona_ids": [
+        "civic",
+        "mentor",
+        "skeptic"
+      ],
+      "user_turns": [
+        "I have an idea: A volunteer ride coordination board. Volunteers have irregular availability. Help me explore possibilities.",
+        "What could be tested without overpromising reliability?",
+        "Demand is strongest when few volunteers are free. What next?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_15",
+      "domain": "work",
+      "idea": "A lightweight process for capturing decisions after meetings",
+      "constraints": [
+        "People dislike additional documentation."
+      ],
+      "persona_ids": [
+        "engineer",
+        "customer",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A lightweight process for capturing decisions after meetings. People dislike additional documentation. Help me explore possibilities.",
+        "What minimum information is worth saving?",
+        "Decisions are later revisited without context. How should the process change?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_16",
+      "domain": "creative",
+      "idea": "A walking tour based on local memories",
+      "constraints": [
+        "Stories may conflict and some are sensitive."
+      ],
+      "persona_ids": [
+        "explorer",
+        "skeptic",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A walking tour based on local memories. Stories may conflict and some are sensitive. Help me explore possibilities.",
+        "How could the tour represent different accounts?",
+        "A contributor wants their story removed. What should happen?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_17",
+      "domain": "education",
+      "idea": "A science club using everyday materials",
+      "constraints": [
+        "Materials should be easy to obtain."
+      ],
+      "persona_ids": [
+        "mentor",
+        "explorer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A science club using everyday materials. Materials should be easy to obtain. Help me explore possibilities.",
+        "What makes a first activity engaging?",
+        "The group includes a wide range of ages. How do we adapt?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_18",
+      "domain": "wellbeing",
+      "idea": "An app that helps users reflect on their workday",
+      "constraints": [
+        "Users control what is recorded."
+      ],
+      "persona_ids": [
+        "health",
+        "mentor",
+        "civic"
+      ],
+      "user_turns": [
+        "I have an idea: An app that helps users reflect on their workday. Users control what is recorded. Help me explore possibilities.",
+        "What prompts could be helpful without making assumptions?",
+        "Users start treating generated reflections as diagnoses. How should the product respond?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_19",
+      "domain": "product",
+      "idea": "A queue notification service for small local shops",
+      "constraints": [
+        "Shop owners have little time for setup."
+      ],
+      "persona_ids": [
+        "strategist",
+        "engineer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A queue notification service for small local shops. Shop owners have little time for setup. Help me explore possibilities.",
+        "What would the smallest useful version do?",
+        "Customers do not want another app. How would you adapt?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_20",
+      "domain": "community",
+      "idea": "A community garden with shared maintenance",
+      "constraints": [
+        "Members have unequal free time."
+      ],
+      "persona_ids": [
+        "civic",
+        "mentor",
+        "skeptic"
+      ],
+      "user_turns": [
+        "I have an idea: A community garden with shared maintenance. Members have unequal free time. Help me explore possibilities.",
+        "How could responsibilities be shared fairly?",
+        "A few plots receive much more attention. What options exist?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_21",
+      "domain": "work",
+      "idea": "A system for suggesting cross-team knowledge sharing",
+      "constraints": [
+        "Employees should not be overwhelmed by recommendations."
+      ],
+      "persona_ids": [
+        "engineer",
+        "customer",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A system for suggesting cross-team knowledge sharing. Employees should not be overwhelmed by recommendations. Help me explore possibilities.",
+        "What makes one suggestion worth acting on?",
+        "Teams say the suggestions feel generic. How can we improve them?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_22",
+      "domain": "creative",
+      "idea": "A public installation that collects anonymous wishes",
+      "constraints": [
+        "Participation should be understandable at a glance."
+      ],
+      "persona_ids": [
+        "explorer",
+        "skeptic",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A public installation that collects anonymous wishes. Participation should be understandable at a glance. Help me explore possibilities.",
+        "How might the installation create meaningful engagement?",
+        "Some submissions are repetitive or unkind. What changes?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_23",
+      "domain": "education",
+      "idea": "A service matching students with project partners",
+      "constraints": [
+        "Skill and motivation vary."
+      ],
+      "persona_ids": [
+        "mentor",
+        "explorer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A service matching students with project partners. Skill and motivation vary. Help me explore possibilities.",
+        "What would a useful match need to consider?",
+        "People abandon projects after matching. How should the idea evolve?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_24",
+      "domain": "wellbeing",
+      "idea": "A social activity group for remote workers",
+      "constraints": [
+        "Members may have limited social energy."
+      ],
+      "persona_ids": [
+        "health",
+        "mentor",
+        "civic"
+      ],
+      "user_turns": [
+        "I have an idea: A social activity group for remote workers. Members may have limited social energy. Help me explore possibilities.",
+        "What could make participation comfortable?",
+        "Attendance drops after the first event. What would you test?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_25",
+      "domain": "product",
+      "idea": "An assistant that helps people compare software tools",
+      "constraints": [
+        "Prices and features change."
+      ],
+      "persona_ids": [
+        "strategist",
+        "engineer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: An assistant that helps people compare software tools. Prices and features change. Help me explore possibilities.",
+        "Which facts should be checked and which preferences should be asked?",
+        "The most feature-rich tool is also hardest to learn. How do we handle that?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_26",
+      "domain": "community",
+      "idea": "A local notice board for small acts of help",
+      "constraints": [
+        "Requests should protect personal privacy."
+      ],
+      "persona_ids": [
+        "civic",
+        "mentor",
+        "skeptic"
+      ],
+      "user_turns": [
+        "I have an idea: A local notice board for small acts of help. Requests should protect personal privacy. Help me explore possibilities.",
+        "How could a first request feel safe and simple?",
+        "People request help that volunteers cannot provide. What boundaries help?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_27",
+      "domain": "work",
+      "idea": "A proposal to rotate meeting facilitation",
+      "constraints": [
+        "Some teammates are uncomfortable facilitating."
+      ],
+      "persona_ids": [
+        "engineer",
+        "customer",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A proposal to rotate meeting facilitation. Some teammates are uncomfortable facilitating. Help me explore possibilities.",
+        "How can the rotation help without creating pressure?",
+        "The rotation improves participation but meetings run longer. What now?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_28",
+      "domain": "creative",
+      "idea": "A shared playlist exchange built around personal stories",
+      "constraints": [
+        "People should choose how much to disclose."
+      ],
+      "persona_ids": [
+        "explorer",
+        "skeptic",
+        "mentor"
+      ],
+      "user_turns": [
+        "I have an idea: A shared playlist exchange built around personal stories. People should choose how much to disclose. Help me explore possibilities.",
+        "What would make it more meaningful than a playlist link?",
+        "Participants prefer short contributions. How could it adapt?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_29",
+      "domain": "education",
+      "idea": "A practice app for explaining complex topics simply",
+      "constraints": [
+        "Learners need feedback they can act on."
+      ],
+      "persona_ids": [
+        "mentor",
+        "explorer",
+        "customer"
+      ],
+      "user_turns": [
+        "I have an idea: A practice app for explaining complex topics simply. Learners need feedback they can act on. Help me explore possibilities.",
+        "What would an effective feedback cycle look like?",
+        "The feedback rewards short answers that omit important details. What changes?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    },
+    {
+      "id": "case_30",
+      "domain": "wellbeing",
+      "idea": "A service helping caregivers coordinate everyday errands",
+      "constraints": [
+        "Keep responsibilities and availability explicit."
+      ],
+      "persona_ids": [
+        "health",
+        "mentor",
+        "civic"
+      ],
+      "user_turns": [
+        "I have an idea: A service helping caregivers coordinate everyday errands. Keep responsibilities and availability explicit. Help me explore possibilities.",
+        "What would reduce coordination burden?",
+        "Schedules change and tasks fall through. What should the next experiment test?"
+      ],
+      "evidence_pack_id": null,
+      "evaluation_focus": [
+        "useful_breadth",
+        "usefulness",
+        "constraint_fidelity",
+        "redundancy",
+        "updating_after_feedback"
+      ]
+    }
+  ]
+}

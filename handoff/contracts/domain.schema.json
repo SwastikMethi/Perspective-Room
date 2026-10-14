@@ -1,0 +1,2492 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Perspective Room public component schemas",
+  "description": "Generated from the supplied OpenAPI components for standalone validation. OpenAPI is authoritative.",
+  "components": {
+    "schemas": {
+      "PersonaId": {
+        "type": "string",
+        "enum": [
+          "mentor",
+          "skeptic",
+          "explorer",
+          "strategist",
+          "engineer",
+          "customer",
+          "civic",
+          "health"
+        ]
+      },
+      "Mode": {
+        "type": "string",
+        "enum": [
+          "standard",
+          "fixed_panel",
+          "jev_guided"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "retryable": {
+            "type": "boolean"
+          },
+          "request_id": {
+            "type": "string"
+          },
+          "details": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "code",
+          "message",
+          "retryable",
+          "request_id",
+          "details"
+        ],
+        "additionalProperties": false
+      },
+      "Brief": {
+        "type": "object",
+        "properties": {
+          "idea": {
+            "type": "string"
+          },
+          "goal": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "constraints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1
+          }
+        },
+        "required": [
+          "idea",
+          "goal",
+          "constraints",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "SessionSettings": {
+        "type": "object",
+        "properties": {
+          "research_policy": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "off"
+            ]
+          },
+          "auto_contributions": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3
+          }
+        },
+        "required": [
+          "research_policy",
+          "auto_contributions"
+        ],
+        "additionalProperties": false
+      },
+      "SessionCreate": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "idea": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "selected_persona_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonaId"
+            },
+            "minItems": 1,
+            "maxItems": 8,
+            "uniqueItems": true
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SessionSettings"
+          },
+          "folder_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "idea"
+        ],
+        "additionalProperties": false
+      },
+      "Session": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "selected_persona_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonaId"
+            }
+          },
+          "version": {
+            "type": "integer"
+          },
+          "brief": {
+            "$ref": "#/components/schemas/Brief"
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SessionSettings"
+          },
+          "active_run_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "organization_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "folder_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "is_pinned": {
+            "type": "boolean"
+          },
+          "is_archived": {
+            "type": "boolean"
+          },
+          "last_activity_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "origin_session_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "mode",
+          "selected_persona_ids",
+          "version",
+          "brief",
+          "settings",
+          "active_run_id",
+          "created_at",
+          "updated_at",
+          "organization_version",
+          "folder_id",
+          "is_pinned",
+          "is_archived",
+          "last_activity_at",
+          "origin_session_id"
+        ],
+        "additionalProperties": false
+      },
+      "SessionList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SessionSummary"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "SessionPatch": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "selected_persona_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonaId"
+            },
+            "minItems": 1,
+            "maxItems": 8,
+            "uniqueItems": true
+          },
+          "settings": {
+            "$ref": "#/components/schemas/SessionSettings"
+          },
+          "brief": {
+            "type": "object",
+            "properties": {
+              "idea": {
+                "type": "string"
+              },
+              "goal": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "constraints": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "idea",
+              "goal",
+              "constraints"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "additionalProperties": false
+      },
+      "TurnControl": {
+        "type": "object",
+        "properties": {
+          "audience": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "person",
+              "panel",
+              "summary"
+            ]
+          },
+          "target_persona_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonaId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "move_override": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "explore",
+              "challenge",
+              "expand",
+              "combine",
+              null
+            ]
+          },
+          "reply_to_message_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "idea_card_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          "research_override": {
+            "type": "string",
+            "enum": [
+              "auto",
+              "off",
+              "force"
+            ]
+          }
+        },
+        "required": [
+          "audience",
+          "target_persona_id",
+          "move_override",
+          "reply_to_message_id",
+          "idea_card_ids",
+          "research_override"
+        ],
+        "additionalProperties": false
+      },
+      "TurnCreate": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "message": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 16000
+          },
+          "control": {
+            "$ref": "#/components/schemas/TurnControl"
+          }
+        },
+        "required": [
+          "expected_version",
+          "message",
+          "control"
+        ],
+        "additionalProperties": false
+      },
+      "Run": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "cancelling",
+              "completed",
+              "partial",
+              "cancelled",
+              "failed",
+              "interrupted"
+            ]
+          },
+          "stage": {
+            "type": "string"
+          },
+          "published_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "requested_count": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 8
+          },
+          "degraded": {
+            "type": "boolean"
+          },
+          "warning_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Error"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "usage": {
+            "type": "object",
+            "properties": {
+              "input_tokens": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "output_tokens": {
+                "type": [
+                  "integer",
+                  "null"
+                ]
+              },
+              "estimated_cost_usd": {
+                "type": [
+                  "number",
+                  "null"
+                ]
+              },
+              "usage_incomplete": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "input_tokens",
+              "output_tokens",
+              "estimated_cost_usd",
+              "usage_incomplete"
+            ],
+            "additionalProperties": false
+          },
+          "session_version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "status",
+          "stage",
+          "published_count",
+          "requested_count",
+          "degraded",
+          "warning_codes",
+          "error",
+          "usage",
+          "session_version",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "Intake": {
+        "type": "object",
+        "properties": {
+          "title_suggestion": {
+            "type": "string"
+          },
+          "focus": {
+            "type": "string"
+          },
+          "intent": {
+            "type": "string",
+            "enum": [
+              "brainstorm",
+              "follow_up",
+              "clarify",
+              "summarize"
+            ]
+          },
+          "clarifying_question": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "research_query": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "research_reason": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "open_questions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "title_suggestion",
+          "focus",
+          "intent",
+          "clarifying_question",
+          "research_query",
+          "research_reason",
+          "open_questions"
+        ],
+        "additionalProperties": false
+      },
+      "Contribution": {
+        "type": "object",
+        "properties": {
+          "headline": {
+            "type": "string"
+          },
+          "blocks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "observation",
+                    "suggestion",
+                    "question",
+                    "assumption",
+                    "fact",
+                    "limitation"
+                  ]
+                },
+                "text": {
+                  "type": "string"
+                },
+                "source_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "text",
+                "source_ids"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "referenced_message_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "new_angle": {
+            "type": "string"
+          },
+          "next_question": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "headline",
+          "blocks",
+          "referenced_message_ids",
+          "new_angle",
+          "next_question"
+        ],
+        "additionalProperties": false
+      },
+      "Summary": {
+        "type": "object",
+        "properties": {
+          "sections": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "directions",
+                    "disagreements",
+                    "assumptions",
+                    "questions",
+                    "experiments"
+                  ]
+                },
+                "items": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "text": {
+                        "type": "string"
+                      },
+                      "source_message_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      },
+                      "source_ids": {
+                        "type": "array",
+                        "items": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "required": [
+                      "text",
+                      "source_message_ids",
+                      "source_ids"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "kind",
+                "items"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "sections"
+        ],
+        "additionalProperties": false
+      },
+      "Memory": {
+        "type": "object",
+        "properties": {
+          "overview": {
+            "type": "string"
+          },
+          "ideas": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "source_message_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "source_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "text",
+                "source_message_ids",
+                "source_ids"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "open_questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "source_message_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "source_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "text",
+                "source_message_ids",
+                "source_ids"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "type": "string"
+                },
+                "source_message_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "source_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "text",
+                "source_message_ids",
+                "source_ids"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "overview",
+          "ideas",
+          "open_questions",
+          "assumptions"
+        ],
+        "additionalProperties": false
+      },
+      "Research": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string"
+          },
+          "findings": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "statement": {
+                  "type": "string"
+                },
+                "source_ids": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "qualification": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "statement",
+                "source_ids",
+                "qualification"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "unknowns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "query",
+          "findings",
+          "unknowns"
+        ],
+        "additionalProperties": false
+      },
+      "Message": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "run_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "sequence": {
+            "type": "integer"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "persona",
+              "moderator"
+            ]
+          },
+          "persona_id": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PersonaId"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "contribution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Contribution"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "summary": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Summary"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "warning_codes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "run_id",
+          "sequence",
+          "role",
+          "persona_id",
+          "text",
+          "contribution",
+          "summary",
+          "created_at",
+          "warning_codes"
+        ],
+        "additionalProperties": false
+      },
+      "MessageList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "previous_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor",
+          "previous_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "RunEvent": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "run_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "run.queued",
+              "run.started",
+              "run.stage",
+              "research.completed",
+              "message.completed",
+              "run.warning",
+              "run.completed",
+              "run.partial",
+              "run.cancelled",
+              "run.failed",
+              "run.interrupted"
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "id",
+          "run_id",
+          "type",
+          "created_at",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "Source": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "research_pack_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "title": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "retrieved_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "published_at": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "research_excerpt": {
+            "type": "string"
+          },
+          "provider_response_id": {
+            "type": "string"
+          },
+          "is_fixture": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "research_pack_id",
+          "url",
+          "title",
+          "domain",
+          "retrieved_at",
+          "published_at",
+          "research_excerpt",
+          "provider_response_id",
+          "is_fixture"
+        ],
+        "additionalProperties": false
+      },
+      "SourceList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Source"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "IdeaCardCreate": {
+        "type": "object",
+        "properties": {
+          "message_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "note": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "exploring",
+              "selected",
+              "parked"
+            ]
+          }
+        },
+        "required": [
+          "message_id",
+          "title",
+          "note",
+          "status"
+        ],
+        "additionalProperties": false
+      },
+      "IdeaCard": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "message_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "note": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "exploring",
+              "selected",
+              "parked"
+            ]
+          },
+          "version": {
+            "type": "integer"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "session_id",
+          "message_id",
+          "title",
+          "note",
+          "status",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "IdeaCardPatch": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer"
+          },
+          "title": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "exploring",
+              "selected",
+              "parked"
+            ]
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "additionalProperties": false
+      },
+      "IdeaCardList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/IdeaCard"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "FeedbackCreate": {
+        "type": "object",
+        "properties": {
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "useful",
+                "new_perspective",
+                "repetitive",
+                "off_character"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "labels",
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "Feedback": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "message_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "useful",
+                "new_perspective",
+                "repetitive",
+                "off_character"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "note": {
+            "type": "string"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "message_id",
+          "labels",
+          "note",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "ForkCreate": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer"
+          },
+          "through_message_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "title": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "before_message_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "fork",
+              "edit",
+              "regenerate"
+            ],
+            "default": "fork"
+          },
+          "folder_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "expected_version",
+          "through_message_id",
+          "title"
+        ],
+        "additionalProperties": false,
+        "description": "At most one non-null before_message_id/through_message_id. Ordinary fork with both null copies all committed history. edit/regenerate require before_message_id pointing to a user message and forbid mode override. Source must be idle, non-archived and not evaluation-managed. folder_id omitted inherits source folder; explicit null unfiles. See document 08."
+      },
+      "RetryCreate": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "expected_version"
+        ],
+        "additionalProperties": false
+      },
+      "Settings": {
+        "type": "object",
+        "properties": {
+          "provider_mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "demo"
+            ]
+          },
+          "openai_configured": {
+            "type": "boolean"
+          },
+          "jev_configured": {
+            "type": "boolean"
+          },
+          "openai_model": {
+            "type": "string"
+          },
+          "research_model": {
+            "type": "string"
+          },
+          "jev_model": {
+            "type": "string"
+          },
+          "limits": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "local_only": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "provider_mode",
+          "openai_configured",
+          "jev_configured",
+          "openai_model",
+          "research_model",
+          "jev_model",
+          "limits",
+          "local_only"
+        ],
+        "additionalProperties": false
+      },
+      "ProviderCheck": {
+        "type": "object",
+        "properties": {
+          "openai": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "missing",
+                  "failed",
+                  "demo"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          "jev": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "missing",
+                  "failed",
+                  "demo"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "openai",
+          "jev"
+        ],
+        "additionalProperties": false
+      },
+      "Persona": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "display_name": {
+            "type": "string"
+          },
+          "tagline": {
+            "type": "string"
+          },
+          "initials": {
+            "type": "string"
+          },
+          "accent": {
+            "type": "string"
+          },
+          "priorities": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "contribution_habits": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "voice": {
+            "type": "string"
+          },
+          "productive_tension": {
+            "type": "string"
+          },
+          "update_rule": {
+            "type": "string"
+          },
+          "boundaries": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "example": {
+            "type": "string"
+          },
+          "evaluation_probes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "version": {
+            "type": "string"
+          },
+          "simulated": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "tagline",
+          "initials",
+          "accent",
+          "priorities",
+          "contribution_habits",
+          "voice",
+          "productive_tension",
+          "update_rule",
+          "boundaries",
+          "example",
+          "evaluation_probes",
+          "version",
+          "simulated"
+        ],
+        "additionalProperties": false
+      },
+      "PersonaList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Persona"
+            }
+          },
+          "default_selection": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonaId"
+            }
+          }
+        },
+        "required": [
+          "items",
+          "default_selection"
+        ],
+        "additionalProperties": false
+      },
+      "EvaluationCreate": {
+        "type": "object",
+        "properties": {
+          "case_ids": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 30,
+            "uniqueItems": true
+          },
+          "modes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Mode"
+            },
+            "minItems": 1,
+            "maxItems": 3,
+            "uniqueItems": true
+          },
+          "repetitions": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "evidence_policy": {
+            "type": "string",
+            "enum": [
+              "off",
+              "fixture",
+              "live"
+            ]
+          },
+          "blind_rating": {
+            "type": "boolean"
+          },
+          "max_trials": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 90
+          }
+        },
+        "required": [
+          "case_ids",
+          "modes",
+          "repetitions",
+          "evidence_policy",
+          "blind_rating",
+          "max_trials"
+        ],
+        "additionalProperties": false
+      },
+      "Evaluation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "queued",
+              "running",
+              "completed",
+              "partial",
+              "cancelled",
+              "failed",
+              "interrupted"
+            ]
+          },
+          "planned_trials": {
+            "type": "integer"
+          },
+          "finished_trials": {
+            "type": "integer"
+          },
+          "failed_trials": {
+            "type": "integer"
+          },
+          "config": {
+            "$ref": "#/components/schemas/EvaluationCreate"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "planned_trials",
+          "finished_trials",
+          "failed_trials",
+          "config",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "EvaluationList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Evaluation"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "Trial": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "evaluation_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "case_id": {
+            "type": "string"
+          },
+          "replicate": {
+            "type": "integer"
+          },
+          "blind_label": {
+            "type": "string"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Mode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "session_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "status": {
+            "type": "string"
+          },
+          "degraded": {
+            "type": [
+              "boolean",
+              "null"
+            ]
+          },
+          "messages": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "evaluation_id",
+          "case_id",
+          "replicate",
+          "blind_label",
+          "mode",
+          "session_id",
+          "status",
+          "degraded",
+          "messages"
+        ],
+        "additionalProperties": false
+      },
+      "TrialList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Trial"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "RatingCreate": {
+        "type": "object",
+        "properties": {
+          "trial_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rater_alias": {
+            "type": "string"
+          },
+          "useful_breadth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "usefulness": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "consistency": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 5
+          },
+          "redundancy": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "note": {
+            "type": "string"
+          },
+          "unblinded": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "trial_id",
+          "rater_alias",
+          "useful_breadth",
+          "usefulness",
+          "consistency",
+          "redundancy",
+          "note",
+          "unblinded"
+        ],
+        "additionalProperties": false
+      },
+      "Rating": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "trial_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "rater_alias": {
+            "type": "string"
+          },
+          "useful_breadth": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "usefulness": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "consistency": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1,
+            "maximum": 5
+          },
+          "redundancy": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5
+          },
+          "note": {
+            "type": "string"
+          },
+          "unblinded": {
+            "type": "boolean"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "trial_id",
+          "rater_alias",
+          "useful_breadth",
+          "usefulness",
+          "consistency",
+          "redundancy",
+          "note",
+          "unblinded",
+          "created_at"
+        ],
+        "additionalProperties": false
+      },
+      "EvaluationCase": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "domain": {
+            "type": "string"
+          },
+          "idea": {
+            "type": "string"
+          },
+          "constraints": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "persona_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonaId"
+            }
+          },
+          "user_turns": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "evidence_pack_id": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "evaluation_focus": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "domain",
+          "idea",
+          "constraints",
+          "persona_ids",
+          "user_turns",
+          "evidence_pack_id",
+          "evaluation_focus"
+        ],
+        "additionalProperties": false
+      },
+      "EvaluationCaseList": {
+        "type": "object",
+        "properties": {
+          "version": {
+            "type": "string"
+          },
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EvaluationCase"
+            }
+          }
+        },
+        "required": [
+          "version",
+          "items"
+        ],
+        "additionalProperties": false
+      },
+      "ConditionResult": {
+        "type": "object",
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "planned": {
+            "type": "integer"
+          },
+          "completed": {
+            "type": "integer"
+          },
+          "incomplete": {
+            "type": "integer"
+          },
+          "degraded": {
+            "type": "integer"
+          },
+          "rated_trials": {
+            "type": "integer"
+          },
+          "mean_useful_breadth": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mean_usefulness": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mean_consistency": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "mean_redundancy": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "median_elapsed_ms": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "estimated_cost_usd": {
+            "type": [
+              "number",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "mode",
+          "planned",
+          "completed",
+          "incomplete",
+          "degraded",
+          "rated_trials",
+          "mean_useful_breadth",
+          "mean_usefulness",
+          "mean_consistency",
+          "mean_redundancy",
+          "median_elapsed_ms",
+          "estimated_cost_usd"
+        ],
+        "additionalProperties": false
+      },
+      "PairedComparison": {
+        "type": "object",
+        "properties": {
+          "left": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "right": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "metric": {
+            "type": "string",
+            "enum": [
+              "useful_breadth",
+              "usefulness",
+              "consistency",
+              "redundancy"
+            ]
+          },
+          "matched_cases": {
+            "type": "integer"
+          },
+          "mean_difference": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ci95_low": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "ci95_high": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "case_differences": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "case_id": {
+                  "type": "string"
+                },
+                "difference": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "case_id",
+                "difference"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "interpretation": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "left",
+          "right",
+          "metric",
+          "matched_cases",
+          "mean_difference",
+          "ci95_low",
+          "ci95_high",
+          "case_differences",
+          "interpretation"
+        ],
+        "additionalProperties": false
+      },
+      "EvaluationResults": {
+        "type": "object",
+        "properties": {
+          "evaluation_id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "provider_mode": {
+            "type": "string",
+            "enum": [
+              "live",
+              "demo"
+            ]
+          },
+          "evidence_policy": {
+            "type": "string",
+            "enum": [
+              "off",
+              "fixture",
+              "live"
+            ]
+          },
+          "conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ConditionResult"
+            }
+          },
+          "comparisons": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PairedComparison"
+            }
+          },
+          "ratings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Rating"
+            }
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "evaluation_id",
+          "provider_mode",
+          "evidence_policy",
+          "conditions",
+          "comparisons",
+          "ratings",
+          "warnings"
+        ],
+        "additionalProperties": false
+      },
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ]
+          },
+          "worker": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "failed"
+            ]
+          },
+          "version": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "worker",
+          "version"
+        ],
+        "additionalProperties": false
+      },
+      "SessionOrganizationPatch": {
+        "type": "object",
+        "properties": {
+          "expected_organization_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "folder_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "is_pinned": {
+            "type": "boolean"
+          },
+          "is_archived": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "expected_organization_version"
+        ],
+        "additionalProperties": false,
+        "description": "At least one mutable field is required. Archive requires an idle session. Archived sessions allow only title or is_archived=false; restore first for other mutations. Organization updates do not increment content version."
+      },
+      "Folder": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          },
+          "version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "chat_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "archived_chat_count": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "version",
+          "chat_count",
+          "archived_chat_count",
+          "created_at",
+          "updated_at"
+        ],
+        "additionalProperties": false
+      },
+      "FolderList": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Folder"
+            }
+          },
+          "next_cursor": {
+            "type": [
+              "string",
+              "null"
+            ]
+          }
+        },
+        "required": [
+          "items",
+          "next_cursor"
+        ],
+        "additionalProperties": false
+      },
+      "FolderCreate": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "FolderPatch": {
+        "type": "object",
+        "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80
+          }
+        },
+        "required": [
+          "expected_version",
+          "name"
+        ],
+        "additionalProperties": false
+      },
+      "SearchMatch": {
+        "type": "object",
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "title",
+              "message"
+            ]
+          },
+          "snippet": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 240
+          },
+          "message_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "message_sequence": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 1
+          }
+        },
+        "required": [
+          "kind",
+          "snippet",
+          "message_id",
+          "message_sequence"
+        ],
+        "additionalProperties": false
+      },
+      "SessionSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "title": {
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/Mode"
+          },
+          "selected_persona_ids": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PersonaId"
+            }
+          },
+          "organization_version": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "folder_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "is_pinned": {
+            "type": "boolean"
+          },
+          "is_archived": {
+            "type": "boolean"
+          },
+          "last_activity_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "active_run_id": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "uuid"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "match": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SearchMatch"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "mode",
+          "selected_persona_ids",
+          "organization_version",
+          "folder_id",
+          "is_pinned",
+          "is_archived",
+          "last_activity_at",
+          "active_run_id",
+          "created_at",
+          "updated_at",
+          "match"
+        ],
+        "additionalProperties": false
+      },
+      "ForkResult": {
+        "type": "object",
+        "properties": {
+          "session": {
+            "$ref": "#/components/schemas/Session"
+          },
+          "turn_template": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TurnCreate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "session",
+          "turn_template"
+        ],
+        "additionalProperties": false
+      }
+    }
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "items": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "title": "Interview practice for students",
+      "mode": "jev_guided",
+      "selected_persona_ids": [
+        "mentor",
+        "skeptic",
+        "explorer"
+      ],
+      "organization_version": 1,
+      "folder_id": "00000000-0000-4000-8000-000000000301",
+      "is_pinned": false,
+      "is_archived": false,
+      "last_activity_at": "2026-10-14T16:30:00Z",
+      "active_run_id": null,
+      "created_at": "2026-10-14T16:30:00Z",
+      "updated_at": "2026-10-14T16:30:00Z",
+      "match": {
+        "kind": "message",
+        "snippet": "I want to build an AI interview-practice app for college students. Help me explore it.",
+        "message_id": "00000000-0000-4000-8000-000000000201",
+        "message_sequence": 1
+      }
+    }
+  ],
+  "next_cursor": null
+}

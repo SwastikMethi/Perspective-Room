@@ -1,0 +1,39 @@
+{
+  "id": "42",
+  "run_id": "00000000-0000-4000-8000-000000000301",
+  "type": "message.completed",
+  "created_at": "2026-10-14T16:30:00Z",
+  "data": {
+    "message": {
+      "id": "00000000-0000-4000-8000-000000000202",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "run_id": "00000000-0000-4000-8000-000000000301",
+      "sequence": 2,
+      "role": "persona",
+      "persona_id": "skeptic",
+      "text": null,
+      "contribution": {
+        "headline": "Test whether the feedback changes the next answer",
+        "blocks": [
+          {
+            "kind": "suggestion",
+            "text": "Let a student answer one interview question, receive one specific improvement, and try again. Compare whether the revision becomes clearer.",
+            "source_ids": []
+          },
+          {
+            "kind": "assumption",
+            "text": "This assumes actionable feedback is more valuable than a long simulated interview; a pilot should test that.",
+            "source_ids": []
+          }
+        ],
+        "referenced_message_ids": [],
+        "new_angle": "Use immediate revision as the first usefulness test.",
+        "next_question": "Which interview skill would you test first?"
+      },
+      "summary": null,
+      "created_at": "2026-10-14T16:30:00Z",
+      "warning_codes": []
+    },
+    "session_version": 3
+  }
+}

@@ -1,0 +1,94 @@
+{
+  "model": "jev-1.13.0",
+  "state": {
+    "focus": "Which assumption should be tested before building an interview-practice app?",
+    "latest_user_message": "I want to build an interview-practice app for college students. Help me explore it.",
+    "selected_personas": [
+      {
+        "id": "mentor",
+        "name": "Empathetic mentor",
+        "priorities": [
+          "emotional safety",
+          "agency",
+          "encouragement grounded in reality"
+        ]
+      },
+      {
+        "id": "skeptic",
+        "name": "Skeptical realist",
+        "priorities": [
+          "evidence",
+          "falsifiability",
+          "failure visibility"
+        ]
+      },
+      {
+        "id": "explorer",
+        "name": "Creative explorer",
+        "priorities": [
+          "originality",
+          "possibility",
+          "useful connections"
+        ]
+      }
+    ],
+    "already_heard": [],
+    "research_query": null,
+    "remaining_contributions": 3,
+    "evidence_available": false
+  },
+  "questions": {
+    "next_speaker": {
+      "type": "choice",
+      "instructions": "Which eligible perspective would add the most useful contribution on the supplied focus now?",
+      "criteria": {
+        "mentor": "Consider student confidence and emotional barriers.",
+        "skeptic": "Identify a testable assumption about usefulness or repeat use.",
+        "explorer": "Offer a different way to frame the practice experience.",
+        "return_user": "Further contribution requires material context from the user."
+      }
+    },
+    "move_mentor": {
+      "type": "choice",
+      "instructions": "If Empathetic mentor speaks next, which contribution type would best address the supplied focus?",
+      "criteria": {
+        "explore": "Introduce a different possibility.",
+        "challenge": "Examine an assumption with a concrete test.",
+        "expand": "Develop a promising existing idea.",
+        "combine": "Connect two existing ideas.",
+        "clarify": "Ask for material missing user context."
+      }
+    },
+    "move_skeptic": {
+      "type": "choice",
+      "instructions": "If Skeptical realist speaks next, which contribution type would best address the supplied focus?",
+      "criteria": {
+        "explore": "Introduce a different possibility.",
+        "challenge": "Examine an assumption with a concrete test.",
+        "expand": "Develop a promising existing idea.",
+        "combine": "Connect two existing ideas.",
+        "clarify": "Ask for material missing user context."
+      }
+    },
+    "move_explorer": {
+      "type": "choice",
+      "instructions": "If Creative explorer speaks next, which contribution type would best address the supplied focus?",
+      "criteria": {
+        "explore": "Introduce a different possibility.",
+        "challenge": "Examine an assumption with a concrete test.",
+        "expand": "Develop a promising existing idea.",
+        "combine": "Connect two existing ideas.",
+        "clarify": "Ask for material missing user context."
+      }
+    },
+    "research_needed": {
+      "type": "choice",
+      "instructions": "Does the supplied research question require current external evidence that would materially help this turn?",
+      "criteria": {
+        "needed": "A specific external fact must be checked.",
+        "not_needed": "No research question exists or the contribution is conceptual.",
+        "uncertain": "There is insufficient information to determine the need."
+      }
+    }
+  }
+}

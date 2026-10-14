@@ -1,0 +1,12 @@
+{
+  "expected_version": 5,
+  "message": "Skeptic, which assumption would you test first?",
+  "control": {
+    "audience": "person",
+    "target_persona_id": "skeptic",
+    "move_override": null,
+    "reply_to_message_id": "00000000-0000-4000-8000-000000000202",
+    "idea_card_ids": [],
+    "research_override": "auto"
+  }
+}

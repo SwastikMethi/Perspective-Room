@@ -1,0 +1,34 @@
+{
+  "is_fixture": true,
+  "description": "Synthetic evidence for tests only. Not a real study or product claim.",
+  "sources": [
+    {
+      "id": "00000000-0000-4000-8000-000000000101",
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "research_pack_id": "00000000-0000-4000-8000-000000000102",
+      "url": "https://example.org/fixture/interview-pilot",
+      "title": "Synthetic interview pilot fixture",
+      "domain": "example.org",
+      "retrieved_at": "2026-10-14T16:30:00Z",
+      "published_at": null,
+      "research_excerpt": "Synthetic participants preferred feedback that identified one concrete improvement. This is fixture data, not research evidence.",
+      "provider_response_id": "fixture-response-001",
+      "is_fixture": true
+    }
+  ],
+  "normalized": {
+    "query": "Which feedback approach should the prototype test?",
+    "findings": [
+      {
+        "statement": "In this synthetic fixture, participants prefer one concrete improvement per answer.",
+        "source_ids": [
+          "00000000-0000-4000-8000-000000000101"
+        ],
+        "qualification": "Synthetic test evidence only."
+      }
+    ],
+    "unknowns": [
+      "Real student preferences have not been established."
+    ]
+  }
+}

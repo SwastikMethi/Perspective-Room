@@ -1,0 +1,3559 @@
+openapi: 3.1.0
+info:
+  title: Perspective Room API
+  version: 1.1.0
+  description: Local-only brainstorming and chat workspace. Documents 08 and 14 specify state, folders, search,
+    branch semantics and cross-field validation.
+servers:
+- url: http://localhost:8000
+paths:
+  /api/v1/health:
+    get:
+      operationId: health
+      summary: health
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Health'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - health
+  /api/v1/personas:
+    get:
+      operationId: listPersonas
+      summary: listPersonas
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonaList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - personas
+  /api/v1/settings:
+    get:
+      operationId: getSettings
+      summary: getSettings
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Settings'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - settings
+  /api/v1/provider-checks:
+    post:
+      operationId: checkProviders
+      summary: Explicit small provider connection check; never returns secrets
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProviderCheck'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - provider-checks
+  /api/v1/sessions:
+    get:
+      operationId: listSessions
+      summary: listSessions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - &id002
+        name: cursor
+        in: query
+        schema: &id004
+          type: string
+      - &id003
+        name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 30
+      - name: q
+        in: query
+        schema:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description: Optional literal search; omit for normal listing.
+      - name: folder_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Only chats in this folder; mutually exclusive with unfiled=true.
+      - name: unfiled
+        in: query
+        schema:
+          type: boolean
+          default: false
+        description: Only chats with folder_id=null.
+      - name: pinned
+        in: query
+        schema:
+          type: boolean
+        description: When supplied filter by this pin state.
+      - name: archive
+        in: query
+        schema:
+          type: string
+          enum:
+          - active
+          - archived
+          - all
+          default: active
+        description: Archive scope; all implements Include archived.
+      description: Lightweight user chat history, excluding evaluation-generated sessions. Sort last_activity_at
+        DESC, id DESC. Search q is a trimmed literal case-insensitive substring over title/public message text;
+        one match per session. Cursor is scoped to all filters. See document 14.
+    post:
+      operationId: createSession
+      summary: createSession
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: &id001
+          type: string
+          format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionCreate'
+  /api/v1/sessions/{session_id}:
+    get:
+      operationId: getSession
+      summary: getSession
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+    patch:
+      operationId: updateSession
+      summary: updateSession
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionPatch'
+    delete:
+      operationId: deleteSession
+      summary: deleteSession
+      responses:
+        '204':
+          description: Successful response
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+  /api/v1/sessions/{session_id}/turns:
+    post:
+      operationId: createTurn
+      summary: createTurn
+      responses:
+        '202':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TurnCreate'
+  /api/v1/sessions/{session_id}/messages:
+    get:
+      operationId: listMessages
+      summary: listMessages
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - *id002
+      - *id003
+      - name: around_message_id
+        in: query
+        schema:
+          type: string
+          format: uuid
+        description: Return an ascending-sequence window containing this same-session message; mutually exclusive
+          with cursor. Both next_cursor and previous_cursor navigate the window.
+      description: No cursor/anchor returns latest limit messages, in ascending sequence. Cursor encodes before/after
+        direction. Anchored windows include the target and nearest earlier/later messages up to limit. Cursor responses
+        remain ascending. Null previous/next means the corresponding end of history.
+  /api/v1/sessions/{session_id}/forks:
+    post:
+      operationId: forkSession
+      summary: forkSession
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForkResult'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ForkCreate'
+      description: Creates a history-preserving branch without calling providers. Ordinary forks return null turn_template.
+        edit/regenerate return remapped original turn input with the new session expected_version. Client edits
+        text for edit and submits explicitly with its own Idempotency-Key.
+  /api/v1/sessions/{session_id}/idea-cards:
+    get:
+      operationId: listIdeaCards
+      summary: listIdeaCards
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaCardList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - *id002
+      - *id003
+    post:
+      operationId: createIdeaCard
+      summary: createIdeaCard
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaCard'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdeaCardCreate'
+  /api/v1/idea-cards/{card_id}:
+    patch:
+      operationId: updateIdeaCard
+      summary: updateIdeaCard
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IdeaCard'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - idea-cards
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IdeaCardPatch'
+    delete:
+      operationId: deleteIdeaCard
+      summary: deleteIdeaCard
+      responses:
+        '204':
+          description: Successful response
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - idea-cards
+      parameters:
+      - name: card_id
+        in: path
+        required: true
+        schema: *id001
+  /api/v1/messages/{message_id}/feedback:
+    post:
+      operationId: setFeedback
+      summary: Replace the local user feedback for this message
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Feedback'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - messages
+      parameters:
+      - name: message_id
+        in: path
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FeedbackCreate'
+  /api/v1/sessions/{session_id}/sources:
+    get:
+      operationId: listSources
+      summary: listSources
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SourceList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - *id002
+      - *id003
+  /api/v1/sources/{source_id}:
+    get:
+      operationId: getSource
+      summary: getSource
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Source'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sources
+      parameters:
+      - name: source_id
+        in: path
+        required: true
+        schema: *id001
+  /api/v1/runs/{run_id}:
+    get:
+      operationId: getRun
+      summary: getRun
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - runs
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema: *id001
+  /api/v1/runs/{run_id}/cancel:
+    post:
+      operationId: cancelRun
+      summary: cancelRun
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - runs
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema: *id001
+  /api/v1/runs/{run_id}/retry:
+    post:
+      operationId: retryRun
+      summary: retryRun
+      responses:
+        '202':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Run'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - runs
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RetryCreate'
+  /api/v1/runs/{run_id}/events:
+    get:
+      operationId: streamRunEvents
+      summary: streamRunEvents
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                description: SSE data is RunEvent JSON; event id is RunEvent.id. See document 08.
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - runs
+      parameters:
+      - name: run_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Last-Event-ID
+        in: header
+        schema: *id004
+      - name: after
+        in: query
+        schema: *id004
+  /api/v1/sessions/{session_id}/export:
+    get:
+      operationId: exportSession
+      summary: exportSession
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/markdown:
+              schema: *id004
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - sessions
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema: *id001
+      - name: format
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - markdown
+          - json
+  /api/v1/evaluations:
+    post:
+      operationId: createEvaluation
+      summary: createEvaluation
+      responses:
+        '202':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EvaluationCreate'
+    get:
+      operationId: listEvaluations
+      summary: listEvaluations
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - *id002
+      - *id003
+  /api/v1/evaluation-cases:
+    get:
+      operationId: listEvaluationCases
+      summary: listEvaluationCases
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationCaseList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluation-cases
+  /api/v1/evaluations/{evaluation_id}:
+    get:
+      operationId: getEvaluation
+      summary: getEvaluation
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema: *id001
+  /api/v1/evaluations/{evaluation_id}/cancel:
+    post:
+      operationId: cancelEvaluation
+      summary: cancelEvaluation
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Evaluation'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema: *id001
+  /api/v1/evaluations/{evaluation_id}/trials:
+    get:
+      operationId: listTrials
+      summary: listTrials
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrialList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema: *id001
+      - *id002
+      - *id003
+      - name: reveal
+        in: query
+        schema:
+          type: boolean
+          default: false
+  /api/v1/evaluations/{evaluation_id}/ratings:
+    post:
+      operationId: createRating
+      summary: createRating
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Rating'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema: *id001
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema: *id001
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RatingCreate'
+  /api/v1/evaluations/{evaluation_id}/results:
+    get:
+      operationId: getEvaluationResults
+      summary: getEvaluationResults
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EvaluationResults'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema: *id001
+      - name: reveal
+        in: query
+        schema:
+          type: boolean
+          default: false
+  /api/v1/evaluations/{evaluation_id}/export:
+    get:
+      operationId: exportEvaluation
+      summary: exportEvaluation
+      responses:
+        '200':
+          description: Successful response
+          content:
+            text/csv:
+              schema: *id004
+            application/json:
+              schema:
+                type: object
+                additionalProperties: true
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      tags:
+      - evaluations
+      parameters:
+      - name: evaluation_id
+        in: path
+        required: true
+        schema: *id001
+      - name: format
+        in: query
+        required: true
+        schema:
+          type: string
+          enum:
+          - json
+          - csv
+  /api/v1/sessions/{session_id}/organization:
+    patch:
+      operationId: updateSessionOrganization
+      summary: updateSessionOrganization
+      tags:
+      - sessions
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Session'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SessionOrganizationPatch'
+      parameters:
+      - name: session_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/v1/folders:
+    get:
+      operationId: listFolders
+      summary: listFolders
+      tags:
+      - folders
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FolderList'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: cursor
+        in: query
+        schema:
+          type: string
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 30
+    post:
+      operationId: createFolder
+      summary: createFolder
+      tags:
+      - folders
+      responses:
+        '201':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Folder'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderCreate'
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        required: true
+        schema:
+          type: string
+          format: uuid
+  /api/v1/folders/{folder_id}:
+    get:
+      operationId: getFolder
+      summary: getFolder
+      tags:
+      - folders
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Folder'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: folder_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    patch:
+      operationId: updateFolder
+      summary: updateFolder
+      tags:
+      - folders
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Folder'
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FolderPatch'
+      parameters:
+      - name: folder_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+    delete:
+      operationId: deleteFolder
+      summary: deleteFolder
+      tags:
+      - folders
+      responses:
+        '204':
+          description: Successful response
+        '400':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '409':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '503':
+          description: Application error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      parameters:
+      - name: folder_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: expected_version
+        in: query
+        schema:
+          type: integer
+          minimum: 1
+        description: Current folder version; stale writes return 409. Chats are retained and unfiled transactionally.
+        required: true
+components:
+  schemas:
+    PersonaId:
+      type: string
+      enum:
+      - mentor
+      - skeptic
+      - explorer
+      - strategist
+      - engineer
+      - customer
+      - civic
+      - health
+    Mode:
+      type: string
+      enum:
+      - standard
+      - fixed_panel
+      - jev_guided
+    Error:
+      type: object
+      properties:
+        code: *id004
+        message: *id004
+        retryable:
+          type: boolean
+        request_id: *id004
+        details:
+          type: object
+          additionalProperties: true
+      required:
+      - code
+      - message
+      - retryable
+      - request_id
+      - details
+      additionalProperties: false
+    Brief:
+      type: object
+      properties:
+        idea: *id004
+        goal: &id006
+          type:
+          - string
+          - 'null'
+        constraints:
+          type: array
+          items: *id004
+        revision:
+          type: integer
+          minimum: 1
+      required:
+      - idea
+      - goal
+      - constraints
+      - revision
+      additionalProperties: false
+    SessionSettings:
+      type: object
+      properties:
+        research_policy:
+          type: string
+          enum:
+          - auto
+          - 'off'
+        auto_contributions:
+          type: integer
+          minimum: 1
+          maximum: 3
+      required:
+      - research_policy
+      - auto_contributions
+      additionalProperties: false
+    SessionCreate:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        idea:
+          type: string
+          minLength: 1
+          maxLength: 16000
+        mode:
+          $ref: '#/components/schemas/Mode'
+        selected_persona_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonaId'
+          minItems: 1
+          maxItems: 8
+          uniqueItems: true
+        settings:
+          $ref: '#/components/schemas/SessionSettings'
+        folder_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      required:
+      - idea
+      additionalProperties: false
+    Session:
+      type: object
+      properties:
+        id: *id001
+        title: *id004
+        mode:
+          $ref: '#/components/schemas/Mode'
+        selected_persona_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonaId'
+        version:
+          type: integer
+        brief:
+          $ref: '#/components/schemas/Brief'
+        settings:
+          $ref: '#/components/schemas/SessionSettings'
+        active_run_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        created_at: &id005
+          type: string
+          format: date-time
+        updated_at: *id005
+        organization_version:
+          type: integer
+          minimum: 1
+        folder_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        is_pinned:
+          type: boolean
+        is_archived:
+          type: boolean
+        last_activity_at:
+          type: string
+          format: date-time
+        origin_session_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      required:
+      - id
+      - title
+      - mode
+      - selected_persona_ids
+      - version
+      - brief
+      - settings
+      - active_run_id
+      - created_at
+      - updated_at
+      - organization_version
+      - folder_id
+      - is_pinned
+      - is_archived
+      - last_activity_at
+      - origin_session_id
+      additionalProperties: false
+    SessionList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionSummary'
+        next_cursor: *id006
+      required:
+      - items
+      - next_cursor
+      additionalProperties: false
+    SessionPatch:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        selected_persona_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonaId'
+          minItems: 1
+          maxItems: 8
+          uniqueItems: true
+        settings:
+          $ref: '#/components/schemas/SessionSettings'
+        brief:
+          type: object
+          properties:
+            idea: *id004
+            goal: *id006
+            constraints:
+              type: array
+              items: *id004
+          required:
+          - idea
+          - goal
+          - constraints
+          additionalProperties: false
+      required:
+      - expected_version
+      additionalProperties: false
+    TurnControl:
+      type: object
+      properties:
+        audience:
+          type: string
+          enum:
+          - auto
+          - person
+          - panel
+          - summary
+        target_persona_id:
+          anyOf:
+          - $ref: '#/components/schemas/PersonaId'
+          - type: 'null'
+        move_override:
+          type:
+          - string
+          - 'null'
+          enum:
+          - explore
+          - challenge
+          - expand
+          - combine
+          - null
+        reply_to_message_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        idea_card_ids:
+          type: array
+          items: *id001
+        research_override:
+          type: string
+          enum:
+          - auto
+          - 'off'
+          - force
+      required:
+      - audience
+      - target_persona_id
+      - move_override
+      - reply_to_message_id
+      - idea_card_ids
+      - research_override
+      additionalProperties: false
+    TurnCreate:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        message:
+          type: string
+          minLength: 1
+          maxLength: 16000
+        control:
+          $ref: '#/components/schemas/TurnControl'
+      required:
+      - expected_version
+      - message
+      - control
+      additionalProperties: false
+    Run:
+      type: object
+      properties:
+        id: *id001
+        session_id: *id001
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - cancelling
+          - completed
+          - partial
+          - cancelled
+          - failed
+          - interrupted
+        stage: *id004
+        published_count:
+          type: integer
+          minimum: 0
+        requested_count:
+          type: integer
+          minimum: 1
+          maximum: 8
+        degraded:
+          type: boolean
+        warning_codes:
+          type: array
+          items: *id004
+        error:
+          anyOf:
+          - $ref: '#/components/schemas/Error'
+          - type: 'null'
+        usage:
+          type: object
+          properties:
+            input_tokens:
+              type:
+              - integer
+              - 'null'
+            output_tokens:
+              type:
+              - integer
+              - 'null'
+            estimated_cost_usd:
+              type:
+              - number
+              - 'null'
+            usage_incomplete:
+              type: boolean
+          required:
+          - input_tokens
+          - output_tokens
+          - estimated_cost_usd
+          - usage_incomplete
+          additionalProperties: false
+        session_version:
+          type: integer
+        created_at: *id005
+        updated_at: *id005
+      required:
+      - id
+      - session_id
+      - status
+      - stage
+      - published_count
+      - requested_count
+      - degraded
+      - warning_codes
+      - error
+      - usage
+      - session_version
+      - created_at
+      - updated_at
+      additionalProperties: false
+    Intake:
+      type: object
+      properties:
+        title_suggestion: *id004
+        focus: *id004
+        intent:
+          type: string
+          enum:
+          - brainstorm
+          - follow_up
+          - clarify
+          - summarize
+        clarifying_question: *id006
+        research_query: *id006
+        research_reason: *id006
+        open_questions:
+          type: array
+          items: *id004
+      required:
+      - title_suggestion
+      - focus
+      - intent
+      - clarifying_question
+      - research_query
+      - research_reason
+      - open_questions
+      additionalProperties: false
+    Contribution:
+      type: object
+      properties:
+        headline: *id004
+        blocks:
+          type: array
+          items:
+            type: object
+            properties:
+              kind:
+                type: string
+                enum:
+                - observation
+                - suggestion
+                - question
+                - assumption
+                - fact
+                - limitation
+              text: *id004
+              source_ids:
+                type: array
+                items: *id004
+            required:
+            - kind
+            - text
+            - source_ids
+            additionalProperties: false
+        referenced_message_ids:
+          type: array
+          items: *id004
+        new_angle: *id004
+        next_question: *id006
+      required:
+      - headline
+      - blocks
+      - referenced_message_ids
+      - new_angle
+      - next_question
+      additionalProperties: false
+    Summary:
+      type: object
+      properties:
+        sections:
+          type: array
+          items:
+            type: object
+            properties:
+              kind:
+                type: string
+                enum:
+                - directions
+                - disagreements
+                - assumptions
+                - questions
+                - experiments
+              items:
+                type: array
+                items: &id007
+                  type: object
+                  properties:
+                    text: *id004
+                    source_message_ids:
+                      type: array
+                      items: *id004
+                    source_ids:
+                      type: array
+                      items: *id004
+                  required:
+                  - text
+                  - source_message_ids
+                  - source_ids
+                  additionalProperties: false
+            required:
+            - kind
+            - items
+            additionalProperties: false
+      required:
+      - sections
+      additionalProperties: false
+    Memory:
+      type: object
+      properties:
+        overview: *id004
+        ideas:
+          type: array
+          items: *id007
+        open_questions:
+          type: array
+          items: *id007
+        assumptions:
+          type: array
+          items: *id007
+      required:
+      - overview
+      - ideas
+      - open_questions
+      - assumptions
+      additionalProperties: false
+    Research:
+      type: object
+      properties:
+        query: *id004
+        findings:
+          type: array
+          items:
+            type: object
+            properties:
+              statement: *id004
+              source_ids:
+                type: array
+                items: *id004
+              qualification: *id006
+            required:
+            - statement
+            - source_ids
+            - qualification
+            additionalProperties: false
+        unknowns:
+          type: array
+          items: *id004
+      required:
+      - query
+      - findings
+      - unknowns
+      additionalProperties: false
+    Message:
+      type: object
+      properties:
+        id: *id001
+        session_id: *id001
+        run_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        sequence:
+          type: integer
+        role:
+          type: string
+          enum:
+          - user
+          - persona
+          - moderator
+        persona_id:
+          anyOf:
+          - $ref: '#/components/schemas/PersonaId'
+          - type: 'null'
+        text: *id006
+        contribution:
+          anyOf:
+          - $ref: '#/components/schemas/Contribution'
+          - type: 'null'
+        summary:
+          anyOf:
+          - $ref: '#/components/schemas/Summary'
+          - type: 'null'
+        created_at: *id005
+        warning_codes:
+          type: array
+          items: *id004
+      required:
+      - id
+      - session_id
+      - run_id
+      - sequence
+      - role
+      - persona_id
+      - text
+      - contribution
+      - summary
+      - created_at
+      - warning_codes
+      additionalProperties: false
+    MessageList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+        next_cursor: *id006
+        previous_cursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+      - next_cursor
+      - previous_cursor
+      additionalProperties: false
+    RunEvent:
+      type: object
+      properties:
+        id: *id004
+        run_id: *id001
+        type:
+          type: string
+          enum:
+          - run.queued
+          - run.started
+          - run.stage
+          - research.completed
+          - message.completed
+          - run.warning
+          - run.completed
+          - run.partial
+          - run.cancelled
+          - run.failed
+          - run.interrupted
+        created_at: *id005
+        data:
+          type: object
+          additionalProperties: true
+      required:
+      - id
+      - run_id
+      - type
+      - created_at
+      - data
+      additionalProperties: false
+    Source:
+      type: object
+      properties:
+        id: *id001
+        session_id: *id001
+        research_pack_id: *id001
+        url:
+          type: string
+          format: uri
+        title: *id004
+        domain: *id004
+        retrieved_at: *id005
+        published_at: *id006
+        research_excerpt: *id004
+        provider_response_id: *id004
+        is_fixture:
+          type: boolean
+      required:
+      - id
+      - session_id
+      - research_pack_id
+      - url
+      - title
+      - domain
+      - retrieved_at
+      - published_at
+      - research_excerpt
+      - provider_response_id
+      - is_fixture
+      additionalProperties: false
+    SourceList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Source'
+        next_cursor: *id006
+      required:
+      - items
+      - next_cursor
+      additionalProperties: false
+    IdeaCardCreate:
+      type: object
+      properties:
+        message_id: *id001
+        title: &id008
+          type: string
+          minLength: 1
+          maxLength: 120
+        note: *id004
+        status: &id009
+          type: string
+          enum:
+          - exploring
+          - selected
+          - parked
+      required:
+      - message_id
+      - title
+      - note
+      - status
+      additionalProperties: false
+    IdeaCard:
+      type: object
+      properties:
+        id: *id001
+        session_id: *id001
+        message_id: *id001
+        title: *id008
+        note: *id004
+        status: *id009
+        version:
+          type: integer
+        created_at: *id005
+        updated_at: *id005
+      required:
+      - id
+      - session_id
+      - message_id
+      - title
+      - note
+      - status
+      - version
+      - created_at
+      - updated_at
+      additionalProperties: false
+    IdeaCardPatch:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+        title: *id004
+        note: *id004
+        status:
+          type: string
+          enum:
+          - exploring
+          - selected
+          - parked
+      required:
+      - expected_version
+      additionalProperties: false
+    IdeaCardList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/IdeaCard'
+        next_cursor: *id006
+      required:
+      - items
+      - next_cursor
+      additionalProperties: false
+    FeedbackCreate:
+      type: object
+      properties:
+        labels: &id010
+          type: array
+          items:
+            type: string
+            enum:
+            - useful
+            - new_perspective
+            - repetitive
+            - off_character
+          uniqueItems: true
+        note: *id004
+      required:
+      - labels
+      - note
+      additionalProperties: false
+    Feedback:
+      type: object
+      properties:
+        id: *id001
+        message_id: *id001
+        labels: *id010
+        note: *id004
+        updated_at: *id005
+      required:
+      - id
+      - message_id
+      - labels
+      - note
+      - updated_at
+      additionalProperties: false
+    ForkCreate:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+        through_message_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        title: *id006
+        mode:
+          $ref: '#/components/schemas/Mode'
+        before_message_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        purpose:
+          type: string
+          enum:
+          - fork
+          - edit
+          - regenerate
+          default: fork
+        folder_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+      required:
+      - expected_version
+      - through_message_id
+      - title
+      additionalProperties: false
+      description: At most one non-null before_message_id/through_message_id. Ordinary fork with both null copies
+        all committed history. edit/regenerate require before_message_id pointing to a user message and forbid mode
+        override. Source must be idle, non-archived and not evaluation-managed. folder_id omitted inherits source
+        folder; explicit null unfiles. See document 08.
+    RetryCreate:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+      required:
+      - expected_version
+      additionalProperties: false
+    Settings:
+      type: object
+      properties:
+        provider_mode:
+          type: string
+          enum:
+          - live
+          - demo
+        openai_configured:
+          type: boolean
+        jev_configured:
+          type: boolean
+        openai_model: *id004
+        research_model: *id004
+        jev_model: *id004
+        limits:
+          type: object
+          additionalProperties: true
+        local_only:
+          type: boolean
+      required:
+      - provider_mode
+      - openai_configured
+      - jev_configured
+      - openai_model
+      - research_model
+      - jev_model
+      - limits
+      - local_only
+      additionalProperties: false
+    ProviderCheck:
+      type: object
+      properties:
+        openai:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - ok
+              - missing
+              - failed
+              - demo
+            message: *id004
+          required:
+          - status
+          - message
+          additionalProperties: false
+        jev:
+          type: object
+          properties:
+            status:
+              type: string
+              enum:
+              - ok
+              - missing
+              - failed
+              - demo
+            message: *id004
+          required:
+          - status
+          - message
+          additionalProperties: false
+      required:
+      - openai
+      - jev
+      additionalProperties: false
+    Persona:
+      type: object
+      properties:
+        id: *id004
+        display_name: *id004
+        tagline: *id004
+        initials: *id004
+        accent: *id004
+        priorities:
+          type: array
+          items: *id004
+        contribution_habits:
+          type: array
+          items: *id004
+        voice: *id004
+        productive_tension: *id004
+        update_rule: *id004
+        boundaries:
+          type: array
+          items: *id004
+        example: *id004
+        evaluation_probes:
+          type: array
+          items: *id004
+        version: *id004
+        simulated:
+          type: boolean
+      required:
+      - id
+      - display_name
+      - tagline
+      - initials
+      - accent
+      - priorities
+      - contribution_habits
+      - voice
+      - productive_tension
+      - update_rule
+      - boundaries
+      - example
+      - evaluation_probes
+      - version
+      - simulated
+      additionalProperties: false
+    PersonaList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Persona'
+        default_selection:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonaId'
+      required:
+      - items
+      - default_selection
+      additionalProperties: false
+    EvaluationCreate:
+      type: object
+      properties:
+        case_ids:
+          type: array
+          items: *id004
+          minItems: 1
+          maxItems: 30
+          uniqueItems: true
+        modes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Mode'
+          minItems: 1
+          maxItems: 3
+          uniqueItems: true
+        repetitions:
+          type: integer
+          minimum: 1
+          maximum: 5
+        evidence_policy:
+          type: string
+          enum:
+          - 'off'
+          - fixture
+          - live
+        blind_rating:
+          type: boolean
+        max_trials:
+          type: integer
+          minimum: 1
+          maximum: 90
+      required:
+      - case_ids
+      - modes
+      - repetitions
+      - evidence_policy
+      - blind_rating
+      - max_trials
+      additionalProperties: false
+    Evaluation:
+      type: object
+      properties:
+        id: *id001
+        status:
+          type: string
+          enum:
+          - queued
+          - running
+          - completed
+          - partial
+          - cancelled
+          - failed
+          - interrupted
+        planned_trials:
+          type: integer
+        finished_trials:
+          type: integer
+        failed_trials:
+          type: integer
+        config:
+          $ref: '#/components/schemas/EvaluationCreate'
+        created_at: *id005
+        updated_at: *id005
+      required:
+      - id
+      - status
+      - planned_trials
+      - finished_trials
+      - failed_trials
+      - config
+      - created_at
+      - updated_at
+      additionalProperties: false
+    EvaluationList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Evaluation'
+        next_cursor: *id006
+      required:
+      - items
+      - next_cursor
+      additionalProperties: false
+    Trial:
+      type: object
+      properties:
+        id: *id001
+        evaluation_id: *id001
+        case_id: *id004
+        replicate:
+          type: integer
+        blind_label: *id004
+        mode:
+          anyOf:
+          - $ref: '#/components/schemas/Mode'
+          - type: 'null'
+        session_id: *id001
+        status: *id004
+        degraded:
+          type:
+          - boolean
+          - 'null'
+        messages:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+      required:
+      - id
+      - evaluation_id
+      - case_id
+      - replicate
+      - blind_label
+      - mode
+      - session_id
+      - status
+      - degraded
+      - messages
+      additionalProperties: false
+    TrialList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Trial'
+        next_cursor: *id006
+      required:
+      - items
+      - next_cursor
+      additionalProperties: false
+    RatingCreate:
+      type: object
+      properties:
+        trial_id: *id001
+        rater_alias: *id004
+        useful_breadth: &id011
+          type: integer
+          minimum: 1
+          maximum: 5
+        usefulness: &id012
+          type: integer
+          minimum: 1
+          maximum: 5
+        consistency: &id013
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+          maximum: 5
+        redundancy: &id014
+          type: integer
+          minimum: 1
+          maximum: 5
+        note: *id004
+        unblinded: &id015
+          type: boolean
+      required:
+      - trial_id
+      - rater_alias
+      - useful_breadth
+      - usefulness
+      - consistency
+      - redundancy
+      - note
+      - unblinded
+      additionalProperties: false
+    Rating:
+      type: object
+      properties:
+        id: *id001
+        trial_id: *id001
+        rater_alias: *id004
+        useful_breadth: *id011
+        usefulness: *id012
+        consistency: *id013
+        redundancy: *id014
+        note: *id004
+        unblinded: *id015
+        created_at: *id005
+      required:
+      - id
+      - trial_id
+      - rater_alias
+      - useful_breadth
+      - usefulness
+      - consistency
+      - redundancy
+      - note
+      - unblinded
+      - created_at
+      additionalProperties: false
+    EvaluationCase:
+      type: object
+      properties:
+        id: *id004
+        domain: *id004
+        idea: *id004
+        constraints:
+          type: array
+          items: *id004
+        persona_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonaId'
+        user_turns:
+          type: array
+          items: *id004
+        evidence_pack_id: *id006
+        evaluation_focus:
+          type: array
+          items: *id004
+      required:
+      - id
+      - domain
+      - idea
+      - constraints
+      - persona_ids
+      - user_turns
+      - evidence_pack_id
+      - evaluation_focus
+      additionalProperties: false
+    EvaluationCaseList:
+      type: object
+      properties:
+        version: *id004
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/EvaluationCase'
+      required:
+      - version
+      - items
+      additionalProperties: false
+    ConditionResult:
+      type: object
+      properties:
+        mode:
+          $ref: '#/components/schemas/Mode'
+        planned:
+          type: integer
+        completed:
+          type: integer
+        incomplete:
+          type: integer
+        degraded:
+          type: integer
+        rated_trials:
+          type: integer
+        mean_useful_breadth: &id016
+          type:
+          - number
+          - 'null'
+        mean_usefulness: *id016
+        mean_consistency: *id016
+        mean_redundancy: *id016
+        median_elapsed_ms: *id016
+        estimated_cost_usd: *id016
+      required:
+      - mode
+      - planned
+      - completed
+      - incomplete
+      - degraded
+      - rated_trials
+      - mean_useful_breadth
+      - mean_usefulness
+      - mean_consistency
+      - mean_redundancy
+      - median_elapsed_ms
+      - estimated_cost_usd
+      additionalProperties: false
+    PairedComparison:
+      type: object
+      properties:
+        left:
+          $ref: '#/components/schemas/Mode'
+        right:
+          $ref: '#/components/schemas/Mode'
+        metric:
+          type: string
+          enum:
+          - useful_breadth
+          - usefulness
+          - consistency
+          - redundancy
+        matched_cases:
+          type: integer
+        mean_difference: *id016
+        ci95_low: *id016
+        ci95_high: *id016
+        case_differences:
+          type: array
+          items:
+            type: object
+            properties:
+              case_id: *id004
+              difference:
+                type: number
+            required:
+            - case_id
+            - difference
+            additionalProperties: false
+        interpretation: *id004
+      required:
+      - left
+      - right
+      - metric
+      - matched_cases
+      - mean_difference
+      - ci95_low
+      - ci95_high
+      - case_differences
+      - interpretation
+      additionalProperties: false
+    EvaluationResults:
+      type: object
+      properties:
+        evaluation_id: *id001
+        provider_mode:
+          type: string
+          enum:
+          - live
+          - demo
+        evidence_policy:
+          type: string
+          enum:
+          - 'off'
+          - fixture
+          - live
+        conditions:
+          type: array
+          items:
+            $ref: '#/components/schemas/ConditionResult'
+        comparisons:
+          type: array
+          items:
+            $ref: '#/components/schemas/PairedComparison'
+        ratings:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rating'
+        warnings:
+          type: array
+          items: *id004
+      required:
+      - evaluation_id
+      - provider_mode
+      - evidence_policy
+      - conditions
+      - comparisons
+      - ratings
+      - warnings
+      additionalProperties: false
+    Health:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+          - ok
+          - degraded
+        database:
+          type: string
+          enum:
+          - ok
+          - failed
+        worker:
+          type: string
+          enum:
+          - ok
+          - failed
+        version: *id004
+      required:
+      - status
+      - database
+      - worker
+      - version
+      additionalProperties: false
+    SessionOrganizationPatch:
+      type: object
+      properties:
+        expected_organization_version:
+          type: integer
+          minimum: 1
+        title:
+          type: string
+          minLength: 1
+          maxLength: 120
+        folder_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        is_pinned:
+          type: boolean
+        is_archived:
+          type: boolean
+      required:
+      - expected_organization_version
+      additionalProperties: false
+      description: At least one mutable field is required. Archive requires an idle session. Archived sessions allow
+        only title or is_archived=false; restore first for other mutations. Organization updates do not increment
+        content version.
+    Folder:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        version:
+          type: integer
+          minimum: 1
+        chat_count:
+          type: integer
+          minimum: 0
+        archived_chat_count:
+          type: integer
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+      required:
+      - id
+      - name
+      - version
+      - chat_count
+      - archived_chat_count
+      - created_at
+      - updated_at
+      additionalProperties: false
+    FolderList:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Folder'
+        next_cursor:
+          type:
+          - string
+          - 'null'
+      required:
+      - items
+      - next_cursor
+      additionalProperties: false
+    FolderCreate:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required:
+      - name
+      additionalProperties: false
+    FolderPatch:
+      type: object
+      properties:
+        expected_version:
+          type: integer
+          minimum: 1
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+      required:
+      - expected_version
+      - name
+      additionalProperties: false
+    SearchMatch:
+      type: object
+      properties:
+        kind:
+          type: string
+          enum:
+          - title
+          - message
+        snippet:
+          type: string
+          minLength: 1
+          maxLength: 240
+        message_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        message_sequence:
+          type:
+          - integer
+          - 'null'
+          minimum: 1
+      required:
+      - kind
+      - snippet
+      - message_id
+      - message_sequence
+      additionalProperties: false
+    SessionSummary:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        mode:
+          $ref: '#/components/schemas/Mode'
+        selected_persona_ids:
+          type: array
+          items:
+            $ref: '#/components/schemas/PersonaId'
+        organization_version:
+          type: integer
+          minimum: 1
+        folder_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        is_pinned:
+          type: boolean
+        is_archived:
+          type: boolean
+        last_activity_at:
+          type: string
+          format: date-time
+        active_run_id:
+          type:
+          - string
+          - 'null'
+          format: uuid
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        match:
+          anyOf:
+          - $ref: '#/components/schemas/SearchMatch'
+          - type: 'null'
+      required:
+      - id
+      - title
+      - mode
+      - selected_persona_ids
+      - organization_version
+      - folder_id
+      - is_pinned
+      - is_archived
+      - last_activity_at
+      - active_run_id
+      - created_at
+      - updated_at
+      - match
+      additionalProperties: false
+    ForkResult:
+      type: object
+      properties:
+        session:
+          $ref: '#/components/schemas/Session'
+        turn_template:
+          anyOf:
+          - $ref: '#/components/schemas/TurnCreate'
+          - type: 'null'
+      required:
+      - session
+      - turn_template
+      additionalProperties: false
+security: []

@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Intake",
+  "type": "object",
+  "properties": {
+    "title_suggestion": {
+      "type": "string"
+    },
+    "focus": {
+      "type": "string"
+    },
+    "intent": {
+      "type": "string",
+      "enum": [
+        "brainstorm",
+        "follow_up",
+        "clarify",
+        "summarize"
+      ]
+    },
+    "clarifying_question": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "research_query": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "research_reason": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "open_questions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    }
+  },
+  "required": [
+    "title_suggestion",
+    "focus",
+    "intent",
+    "clarifying_question",
+    "research_query",
+    "research_reason",
+    "open_questions"
+  ],
+  "additionalProperties": false
+}

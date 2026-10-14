@@ -1,0 +1,15 @@
+{
+  "query": "Which feedback approach should the prototype test?",
+  "findings": [
+    {
+      "statement": "In this synthetic fixture, participants prefer one concrete improvement per answer.",
+      "source_ids": [
+        "00000000-0000-4000-8000-000000000101"
+      ],
+      "qualification": "Synthetic test evidence only."
+    }
+  ],
+  "unknowns": [
+    "Real student preferences have not been established."
+  ]
+}

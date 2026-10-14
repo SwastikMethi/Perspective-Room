@@ -1,0 +1,66 @@
+{
+  "model": "jev-1.13.0",
+  "answers": {
+    "next_speaker": {
+      "type": "choice",
+      "choice": "skeptic",
+      "probabilities": {
+        "mentor": 0.1,
+        "skeptic": 0.7,
+        "explorer": 0.1,
+        "return_user": 0.1
+      },
+      "confidence": 0.6
+    },
+    "research_needed": {
+      "type": "choice",
+      "choice": "not_needed",
+      "probabilities": {
+        "needed": 0.03,
+        "not_needed": 0.94,
+        "uncertain": 0.03
+      },
+      "confidence": 0.9099999999999999
+    },
+    "move_mentor": {
+      "type": "choice",
+      "choice": "explore",
+      "probabilities": {
+        "explore": 0.8,
+        "challenge": 0.05,
+        "expand": 0.05,
+        "combine": 0.05,
+        "clarify": 0.05
+      },
+      "confidence": 0.7500000000000001
+    },
+    "move_skeptic": {
+      "type": "choice",
+      "choice": "challenge",
+      "probabilities": {
+        "explore": 0.05,
+        "challenge": 0.8,
+        "expand": 0.05,
+        "combine": 0.05,
+        "clarify": 0.05
+      },
+      "confidence": 0.7500000000000001
+    },
+    "move_explorer": {
+      "type": "choice",
+      "choice": "explore",
+      "probabilities": {
+        "explore": 0.8,
+        "challenge": 0.05,
+        "expand": 0.05,
+        "combine": 0.05,
+        "clarify": 0.05
+      },
+      "confidence": 0.7500000000000001
+    }
+  },
+  "usage": {
+    "input_tokens": 1000,
+    "output_tokens": 120
+  }
+}

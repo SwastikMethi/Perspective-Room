@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.1.0",
+  "application_name": "Perspective Room",
+  "default_mode": "jev_guided",
+  "provider_mode": "live",
+  "openai_model": "gpt-6.1-sol",
+  "openai_research_model": "gpt-6.1-sol",
+  "jev_model": "jev-1.13.0",
+  "reasoning_effort": null,
+  "temperature": null,
+  "research_policy": "auto",
+  "limits": {
+    "selected_personas": 8,
+    "auto_contributions": 3,
+    "panel_contributions": 8,
+    "standard_contributions": 1,
+    "research_jobs_per_turn": 1,
+    "web_tool_calls_per_research": 3,
+    "repairs_per_turn": 1,
+    "provider_retries": 1,
+    "provider_attempts_per_turn": 40,
+    "concurrent_generations": 2,
+    "concurrent_session_runs": 2,
+    "user_message_chars": 16000,
+    "optional_recent_messages": 12,
+    "llm_input_tokens": 24000,
+    "jev_state_tokens": 8000,
+    "intake_output_tokens": 2048,
+    "contribution_output_tokens": 4096,
+    "summary_output_tokens": 4096,
+    "memory_output_tokens": 3072,
+    "research_output_tokens": 6144,
+    "session_usd_cap": null
+  },
+  "timeouts_seconds": {
+    "generation": 90,
+    "research": 120,
+    "jev": 15,
+    "turn_deadline": 600,
+    "sse_heartbeat": 15
+  },
+  "jev_thresholds": {
+    "routing_confidence": 0.35,
+    "audit_bad_score_below": 0.5,
+    "audit_failure_confidence": 0.7
+  },
+  "experiment": {
+    "default_repetitions": 1,
+    "max_repetitions": 5,
+    "max_cases_per_batch": 30,
+    "max_live_trials_per_batch": 90,
+    "evidence_policy": "fixture",
+    "base_output_budget_per_turn": 12288,
+    "blind_rating": true
+  },
+  "prices": {
+    "enabled": false,
+    "rate_card_version": null,
+    "note": "Configure verified rates to show estimates; missing usage or rates stays unknown."
+  },
+  "ui": {
+    "default_theme": "dark",
+    "theme_options": [
+      "dark",
+      "light"
+    ],
+    "sidebar_default": "collapsed",
+    "sidebar_expanded_width_px": 272,
+    "sidebar_collapsed_width_px": 64,
+    "folders": "single_level",
+    "session_list_page_size": 30,
+    "search_debounce_ms": 250,
+    "draft_debounce_ms": 300,
+    "persist_ui_state_in": "browser_local_storage",
+    "chat_drafts_keyed_by_session": true,
+    "details_drawer_default": "closed",
+    "max_response_columns": 3,
+    "mobile_roster": "horizontal_scroll"
+  }
+}

@@ -1,0 +1,120 @@
+{
+  "version": "1.1.0",
+  "order": [
+    "mentor",
+    "skeptic",
+    "explorer",
+    "strategist",
+    "engineer",
+    "customer",
+    "civic",
+    "health"
+  ],
+  "source_images": {
+    "dark": "ui/approved-room-dark.png",
+    "light": "ui/approved-room-light.png"
+  },
+  "source_size_px": [
+    1586,
+    992
+  ],
+  "note": "Optional CSS sprite source for the exact approved cartoon portraits. Crop visually with a circular viewport; keep selection controls outside the sprite. These are static presentation assets and never alter persona prompts. No runtime image-generation dependency.",
+  "personas": [
+    {
+      "persona_id": "mentor",
+      "short_label": "Mentor",
+      "accent": "#EB9173",
+      "source_rect_px": {
+        "x": 164,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Mentor illustrated avatar"
+    },
+    {
+      "persona_id": "skeptic",
+      "short_label": "Skeptic",
+      "accent": "#98B8F0",
+      "source_rect_px": {
+        "x": 335,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Skeptic illustrated avatar"
+    },
+    {
+      "persona_id": "explorer",
+      "short_label": "Explorer",
+      "accent": "#E7C95F",
+      "source_rect_px": {
+        "x": 509,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Explorer illustrated avatar"
+    },
+    {
+      "persona_id": "strategist",
+      "short_label": "Strategist",
+      "accent": "#B594B2",
+      "source_rect_px": {
+        "x": 680,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Strategist illustrated avatar"
+    },
+    {
+      "persona_id": "engineer",
+      "short_label": "Engineer",
+      "accent": "#78B5AA",
+      "source_rect_px": {
+        "x": 852,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Engineer illustrated avatar"
+    },
+    {
+      "persona_id": "customer",
+      "short_label": "Advocate",
+      "accent": "#E6A68B",
+      "source_rect_px": {
+        "x": 1021,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Advocate illustrated avatar"
+    },
+    {
+      "persona_id": "civic",
+      "short_label": "Civic thinker",
+      "accent": "#A5BC97",
+      "source_rect_px": {
+        "x": 1193,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Civic thinker illustrated avatar"
+    },
+    {
+      "persona_id": "health",
+      "short_label": "Health thinker",
+      "accent": "#8CB2CA",
+      "source_rect_px": {
+        "x": 1364,
+        "y": 298,
+        "width": 108,
+        "height": 108
+      },
+      "alt": "Health thinker illustrated avatar"
+    }
+  ]
+}

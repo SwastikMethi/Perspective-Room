@@ -1,0 +1,103 @@
+{
+  "is_fixture": true,
+  "description": "Synthetic sidebar state; no live provider result.",
+  "folders": {
+    "items": [
+      {
+        "id": "00000000-0000-4000-8000-000000000301",
+        "name": "Product ideas",
+        "version": 1,
+        "chat_count": 2,
+        "archived_chat_count": 0,
+        "created_at": "2026-10-14T16:30:00Z",
+        "updated_at": "2026-10-14T16:30:00Z"
+      }
+    ],
+    "next_cursor": null
+  },
+  "active_chats": {
+    "items": [
+      {
+        "id": "00000000-0000-4000-8000-000000000001",
+        "title": "Interview practice for students",
+        "mode": "jev_guided",
+        "selected_persona_ids": [
+          "mentor",
+          "skeptic",
+          "explorer"
+        ],
+        "organization_version": 1,
+        "folder_id": "00000000-0000-4000-8000-000000000301",
+        "is_pinned": false,
+        "is_archived": false,
+        "last_activity_at": "2026-10-14T16:30:00Z",
+        "active_run_id": null,
+        "created_at": "2026-10-14T16:30:00Z",
+        "updated_at": "2026-10-14T16:30:00Z",
+        "match": null
+      },
+      {
+        "id": "00000000-0000-4000-8000-000000000002",
+        "title": "Team knowledge assistant",
+        "mode": "jev_guided",
+        "selected_persona_ids": [
+          "mentor",
+          "skeptic",
+          "explorer"
+        ],
+        "organization_version": 1,
+        "folder_id": "00000000-0000-4000-8000-000000000301",
+        "is_pinned": false,
+        "is_archived": false,
+        "last_activity_at": "2026-10-14T16:30:00Z",
+        "active_run_id": null,
+        "created_at": "2026-10-14T16:30:00Z",
+        "updated_at": "2026-10-14T16:30:00Z",
+        "match": null
+      }
+    ],
+    "next_cursor": null
+  },
+  "archived_chats": {
+    "items": [
+      {
+        "id": "00000000-0000-4000-8000-000000000003",
+        "title": "Earlier concept",
+        "mode": "jev_guided",
+        "selected_persona_ids": [
+          "mentor",
+          "skeptic",
+          "explorer"
+        ],
+        "organization_version": 1,
+        "folder_id": null,
+        "is_pinned": false,
+        "is_archived": true,
+        "last_activity_at": "2026-10-14T16:30:00Z",
+        "active_run_id": null,
+        "created_at": "2026-10-14T16:30:00Z",
+        "updated_at": "2026-10-14T16:30:00Z",
+        "match": null
+      }
+    ],
+    "next_cursor": null
+  },
+  "ui_state": {
+    "theme": "dark",
+    "sidebar_expanded": true,
+    "open_folder_ids": [
+      "00000000-0000-4000-8000-000000000301"
+    ],
+    "active_session_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "drafts": {
+    "00000000-0000-4000-8000-000000000001": {
+      "text": "What should we test first?",
+      "target": "auto"
+    },
+    "00000000-0000-4000-8000-000000000002": {
+      "text": "Start with the support team.",
+      "target": "auto"
+    }
+  }
+}
