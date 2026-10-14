@@ -3136,6 +3136,21 @@ components:
         note: *id004
         unblinded: &id015
           type: boolean
+        labels: &rating_labels
+          type: array
+          items:
+            type: string
+            enum:
+            - unsupported_claim
+            - missed_constraint
+            - false_credential
+            - mishandled_disagreement
+          uniqueItems: true
+        distinct_directions: &rating_directions
+          type:
+          - integer
+          - 'null'
+          minimum: 0
       required:
       - trial_id
       - rater_alias
@@ -3145,6 +3160,8 @@ components:
       - redundancy
       - note
       - unblinded
+      - labels
+      - distinct_directions
       additionalProperties: false
     Rating:
       type: object
@@ -3158,6 +3175,8 @@ components:
         redundancy: *id014
         note: *id004
         unblinded: *id015
+        labels: *rating_labels
+        distinct_directions: *rating_directions
         created_at: *id005
       required:
       - id
@@ -3169,6 +3188,8 @@ components:
       - redundancy
       - note
       - unblinded
+      - labels
+      - distinct_directions
       - created_at
       additionalProperties: false
     EvaluationCase:

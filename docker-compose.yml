@@ -1,0 +1,51 @@
+name: perspective-room
+
+services:
+  app:
+    build: .
+    env_file:
+      - path: .env
+        required: false
+    ports:
+      - "127.0.0.1:${APP_PORT:-8000}:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-perspective}
+      POSTGRES_USER: ${POSTGRES_USER:-perspective}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_development_only}
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    # No published ports: the database stays on the private Compose network.
+
+  # Native development and tests only (`docker compose --profile dev up -d db-dev`).
+  db-dev:
+    profiles: ["dev"]
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: perspective
+      POSTGRES_USER: perspective
+      POSTGRES_PASSWORD: local_development_only
+    ports:
+      - "127.0.0.1:55432:5432"
+    volumes:
+      - db-dev-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U perspective -d perspective"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+volumes:
+  db-data:
+  db-dev-data:

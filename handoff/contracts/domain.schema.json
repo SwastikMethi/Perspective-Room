@@ -1819,6 +1819,26 @@
           },
           "unblinded": {
             "type": "boolean"
+          },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "unsupported_claim",
+                "missed_constraint",
+                "false_credential",
+                "mishandled_disagreement"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "distinct_directions": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
           }
         },
         "required": [
@@ -1829,7 +1849,9 @@
           "consistency",
           "redundancy",
           "note",
-          "unblinded"
+          "unblinded",
+          "labels",
+          "distinct_directions"
         ],
         "additionalProperties": false
       },
@@ -1876,6 +1898,26 @@
           "unblinded": {
             "type": "boolean"
           },
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "unsupported_claim",
+                "missed_constraint",
+                "false_credential",
+                "mishandled_disagreement"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "distinct_directions": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0
+          },
           "created_at": {
             "type": "string",
             "format": "date-time"
@@ -1891,6 +1933,8 @@
           "redundancy",
           "note",
           "unblinded",
+          "labels",
+          "distinct_directions",
           "created_at"
         ],
         "additionalProperties": false
