@@ -206,6 +206,7 @@ class Run(Base):
     attempts: Mapped[int] = mapped_column(Integer, server_default="0")
     repairs_used: Mapped[int] = mapped_column(Integer, server_default="0")
     research_used: Mapped[int] = mapped_column(Integer, server_default="0")
+    intake: Mapped[dict[str, Any] | None]  # the normalized intake, reused by retries
     cancel_requested: Mapped[bool] = mapped_column(Boolean, server_default="false")
     worker_id: Mapped[str | None] = mapped_column(Text)
     heartbeat_at: Mapped[datetime | None]
@@ -262,6 +263,8 @@ class Message(Base):
     turn_control: Mapped[dict[str, Any] | None]
     turn_snapshot: Mapped[dict[str, Any] | None]
     round_status: Mapped[str | None] = mapped_column(Text)
+    # Public status of the round this user message opened (copied by forks; read by exports).
+    round_info: Mapped[dict[str, Any] | None]
     created_at: Mapped[datetime] = _now()
 
 

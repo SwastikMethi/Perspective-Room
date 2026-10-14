@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.deps import DB, IdempotencyKey, route_key
 from app.api.errors import ERROR_RESPONSES
 from app.domain import api
+from app.services import fork as fork_svc
 from app.services import runs as run_svc
 from app.services import transcript
 from app.services.idempotency import idempotent
@@ -71,3 +72,25 @@ async def cancel_run(request: Request, run_id: UUID, db: DB) -> api.Run:
     await state.notifier.notify_run(run_id)
     state.runner.cancel_signal(run_id)
     return run_svc.run_out(run)
+
+
+@router.post(
+    "/runs/{run_id}/retry",
+    operation_id="retryRun",
+    tags=["runs"],
+    status_code=202,
+    response_model=api.Run,
+)
+async def retry_run(
+    request: Request, run_id: UUID, body: api.RetryCreate, key: IdempotencyKey, db: DB
+) -> JSONResponse:
+    state = request.app.state
+
+    async def handler(s: AsyncSession) -> tuple[int, api.Run]:
+        return 202, await fork_svc.retry_run(s, state.env, run_id, body)
+
+    status, payload = await idempotent(
+        db, route_key(request), key, body.model_dump(mode="json"), handler
+    )
+    state.notifier.wake_worker()
+    return JSONResponse(payload, status_code=status)

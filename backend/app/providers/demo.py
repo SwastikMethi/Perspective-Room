@@ -248,11 +248,12 @@ class DemoGeneration:
     def _summary(self, p: dict[str, Any], d: dict[str, str]) -> dict[str, Any]:
         msgs = [m for m in p.get("recent_messages", []) if m.get("role") != "user"]
 
-        def item(text: str, ids: list[str]) -> dict[str, Any]:
-            return {"text": text, "source_message_ids": ids, "source_ids": []}
+        def item(text: str, ids: list[str], sources: list[str] | None = None) -> dict[str, Any]:
+            return {"text": text, "source_message_ids": ids, "source_ids": sources or []}
 
         directions = [
-            item(m.get("headline") or _short(m.get("text", "")), [m["id"]]) for m in msgs[:3]
+            item(m.get("headline") or _short(m.get("text", "")), [m["id"]], m.get("source_ids"))
+            for m in msgs[:3]
         ]
         skeptic = [m for m in msgs if m.get("persona_id") == "skeptic"]
         none = "No item was established in this conversation."

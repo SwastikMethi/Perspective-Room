@@ -9,7 +9,7 @@ from typing import Any
 from uuid import UUID
 
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import select, tuple_
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.errors import ApiError
@@ -73,3 +73,35 @@ def decode_cursor(cursor: str, scope: str) -> dict[str, Any]:
     if not isinstance(data, dict) or data.get("scope") != scope:
         raise ApiError(400, "bad_request", "That cursor belongs to a different list.")
     return data
+
+
+async def keyset_page(
+    db: AsyncSession,
+    query: Any,
+    ts_col: Any,
+    id_col: Any,
+    *,
+    limit: int,
+    cursor: str | None,
+    scope: str,
+    descending: bool = False,
+) -> tuple[list[Any], str | None]:
+    """Cursor pagination over (timestamp, id); the cursor is bound to `scope`."""
+    if cursor:
+        c = decode_cursor(cursor, scope)
+        try:
+            ts, last_id = datetime.fromisoformat(c["t"]), UUID(c["i"])
+        except (KeyError, ValueError, TypeError) as e:
+            raise ApiError(400, "bad_request", "That cursor is not valid.") from e
+        key = tuple_(ts_col, id_col)
+        query = query.where(key < tuple_(ts, last_id) if descending else key > tuple_(ts, last_id))
+    order = (ts_col.desc(), id_col.desc()) if descending else (ts_col, id_col)
+    rows = list((await db.scalars(query.order_by(*order).limit(limit + 1))).all())
+    nxt = None
+    if len(rows) > limit:
+        rows = rows[:limit]
+        last = rows[-1]
+        nxt = encode_cursor(
+            {"t": getattr(last, ts_col.key).isoformat(), "i": str(getattr(last, id_col.key))}, scope
+        )
+    return rows, nxt

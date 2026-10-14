@@ -143,3 +143,68 @@ async def delete_session(db: AsyncSession, session_id: UUID) -> None:
                 details={"active_run_id": str(active)},
             )
         await db.delete(row)
+
+
+async def update_session(
+    db: AsyncSession, catalog: Catalog, session_id: UUID, body: api.SessionPatch
+) -> api.Session:
+    """Context edits (participants, settings, brief). Blocked during runs; brief changes create an
+    immutable revision. Organization fields use their own endpoint and version."""
+    reject_explicit_nulls(body, ("selected_persona_ids", "settings", "brief"))
+    changes = body.model_fields_set - {"expected_version"}
+    if not changes:
+        raise ApiError(422, "validation_error", "Nothing to change.")
+    row = await lock_session(db, session_id)
+    if row.evaluation_batch_id is not None:
+        raise ApiError(409, "evaluation_managed", "Experiment Lab chats are driven by the Lab.")
+    if row.is_archived:
+        raise ApiError(409, "session_archived", "Restore this chat before changing it.")
+    if body.expected_version != row.version:
+        raise ApiError(
+            409,
+            "version_conflict",
+            "This chat changed; refresh and try again.",
+            details={"current_version": row.version},
+        )
+    if (active := await active_run_id(db, session_id)) is not None:
+        raise ApiError(
+            409,
+            "run_active",
+            "Wait for the running reply or stop it first.",
+            details={"active_run_id": str(active)},
+        )
+    if body.selected_persona_ids is not None:
+        row.selected_persona_ids = unique(list(body.selected_persona_ids), "selected_persona_ids")
+    if body.settings is not None:
+        row.settings = body.settings.model_dump()
+    if body.brief is not None:
+        idea = trimmed(body.brief.idea, "idea", catalog.defaults.limits.user_message_chars)
+        goal = body.brief.goal.strip() or None if body.brief.goal is not None else None
+        constraints = [c.strip() for c in body.brief.constraints if c.strip()]
+        current = row.brief
+        if (idea, goal, constraints) != (
+            current["idea"],
+            current.get("goal"),
+            current.get("constraints", []),
+        ):
+            revision = int(current["revision"]) + 1
+            db.add(
+                IdeaRevision(
+                    session_id=row.id,
+                    revision=revision,
+                    idea=idea,
+                    goal=goal,
+                    constraints=constraints,
+                    author_type="user",
+                )
+            )
+            row.brief = {
+                "idea": idea,
+                "goal": goal,
+                "constraints": constraints,
+                "revision": revision,
+            }
+    row.version += 1
+    row.updated_at = utcnow()
+    await db.flush()
+    return session_out(row, None)

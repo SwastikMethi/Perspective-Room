@@ -67,6 +67,24 @@ def error_dict(code: str, message: str, retryable: bool = False) -> dict[str, An
     }
 
 
+async def round_info(db: AsyncSession, run: Run) -> dict[str, Any]:
+    """Public status of the round `run` belongs to (its whole retry chain): kept on the user
+    message so forks and exports carry it without copying runs."""
+    chain = (
+        await db.scalars(
+            select(Run).where(Run.user_message_id == run.user_message_id).order_by(Run.created_at)
+        )
+    ).all()
+    return {
+        "provider_mode": run.snapshot.get("provider_mode"),
+        "audience": run.audience,
+        "warning_codes": list(dict.fromkeys(c for r in chain for c in r.warning_codes)),
+        "missing_persona_ids": list(run.missing),  # the latest run knows what is still missing
+        "degraded": any(r.degraded for r in chain),
+        "published": sum(r.published_count for r in chain),
+    }
+
+
 async def mark_terminal(
     db: AsyncSession,
     run: Run,
@@ -86,8 +104,11 @@ async def mark_terminal(
     if degraded is not None:
         run.degraded = run.degraded or degraded
     if run.user_message_id is not None:
+        await db.flush()
         await db.execute(
-            update(Message).where(Message.id == run.user_message_id).values(round_status=status)
+            update(Message)
+            .where(Message.id == run.user_message_id)
+            .values(round_status=status, round_info=await round_info(db, run))
         )
     await db.flush()
     await append_event(

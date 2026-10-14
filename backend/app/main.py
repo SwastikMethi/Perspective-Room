@@ -7,7 +7,7 @@ from typing import Any
 
 from fastapi import FastAPI
 
-from app.api import conversation, events, sessions, system
+from app.api import conversation, events, ideas, sessions, sources, system
 from app.api.errors import RequestIdMiddleware, install_error_handlers
 from app.api.spa import mount_spa
 from app.catalog import Catalog, load_catalog
@@ -116,5 +116,7 @@ def create_app(env: AppEnv | None = None, catalog: Catalog | None = None) -> Fas
     app.include_router(sessions.router)
     app.include_router(conversation.router)
     app.include_router(events.router)
+    app.include_router(ideas.router)
+    app.include_router(sources.router)
     mount_spa(app, env.STATIC_DIR)  # last: its catch-all must not shadow API routes
     return app

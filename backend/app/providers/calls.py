@@ -44,6 +44,11 @@ TIMEOUT_FOR = {
 MAX_RETRY_WAIT = 10.0  # a longer provider hint ends the attempt instead of stalling the turn
 
 
+async def _bounded[T](fn: Callable[[], Awaitable[T]], seconds: float) -> T:
+    """Create the provider coroutine only inside the cancellable child (never left unawaited)."""
+    return await asyncio.wait_for(fn(), seconds)
+
+
 class AttemptsExhausted(Exception):
     """The run used its provider-attempt ceiling."""
 
@@ -223,7 +228,7 @@ async def call_provider[T](
         )
         started = time.monotonic()
         try:
-            result = await ctx.call(asyncio.wait_for(fn(), timeout))
+            result = await ctx.call(_bounded(fn, timeout))
         except TimeoutError:
             await _finish_row(
                 ctx,
