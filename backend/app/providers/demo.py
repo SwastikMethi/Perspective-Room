@@ -129,7 +129,7 @@ class DemoGeneration:
         persona = (p.get("profile") or {}).get("id")
         if "delay" in d:
             await asyncio.sleep(int(d["delay"] or 0) / 1000)
-        if d.get("fail") in ("all", persona) and schema_name == "contribution":
+        if "fail" in d and d["fail"] in ("all", persona) and schema_name == "contribution":
             raise ProviderFailure("provider_error", "Demo failure requested for this reply.")
         if "refuse" in d and schema_name == "contribution":
             return Refused("Demo refusal requested.", "demo", None, DEMO_USAGE)
@@ -152,12 +152,17 @@ class DemoGeneration:
         wants = "research" in d or re.search(
             r"\b(current|existing|latest|evidence|study|studies|research)\b", msg, re.I
         )
+        query = _short(msg, 120) if wants else None
+        if query and d.get("research"):  # keep demo research directives on the query
+            query += f" [[demo:research={d['research']}]]"
         return {
             "title_suggestion": title,
             "focus": focus,
             "intent": "summarize" if "summar" in msg.lower() else "brainstorm",
-            "clarifying_question": None,
-            "research_query": _short(msg, 120) if wants else None,
+            "clarifying_question": "Who is the main person you want this to help?"
+            if "clarify" in d
+            else None,
+            "research_query": query,
             "research_reason": "The question depends on current external facts." if wants else None,
             "open_questions": [f"What would make this worth returning to: {_short(focus, 60)}"],
         }
@@ -360,7 +365,9 @@ class DemoCoordinator:
 
     name = "demo"
 
-    async def ask(self, state: dict[str, Any], questions: dict[str, Any]) -> dict[str, Any]:
+    async def ask(
+        self, state: dict[str, Any], questions: dict[str, Any], model: str | None = None
+    ) -> dict[str, Any]:
         d = directives(str(state.get("latest_user_message", "")))
         if d.get("jev") == "down":
             raise ProviderFailure(

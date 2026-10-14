@@ -109,6 +109,8 @@ class GenerationProvider(Protocol):
 class Coordinator(Protocol):
     name: str
 
-    async def ask(self, state: dict[str, Any], questions: dict[str, Any]) -> dict[str, Any]:
+    async def ask(
+        self, state: dict[str, Any], questions: dict[str, Any], model: str | None = None
+    ) -> dict[str, Any]:
         """Raw Jev envelope: {"model": str, "answers": {qid: answer}, "usage": {...}}."""
         ...

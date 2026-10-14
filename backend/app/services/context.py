@@ -65,6 +65,7 @@ def build_snapshot(
         "timeouts": d.timeouts_seconds.model_dump(),
         "thresholds": d.jev_thresholds.model_dump(),
         "templates": template_hashes(),
+        "turn_output_budget": d.experiment.base_output_budget_per_turn,
         "provider_mode": env.APP_PROVIDER_MODE,
         "roster": list(catalog.order),
     }

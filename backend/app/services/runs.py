@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.errors import ApiError
 from app.domain import api
-from app.persistence.models import Message, Run, RunEvent
+from app.persistence.models import DecisionEvent, Message, Run, RunEvent
 from app.services.common import utcnow
 
 if TYPE_CHECKING:
@@ -148,3 +148,19 @@ async def update_run(ctx: "RunContext", **values: Any) -> None:
         await s.execute(
             update(Run).where(Run.id == ctx.run_id).values(updated_at=utcnow(), **values)
         )
+
+
+async def emit(ctx: "RunContext", type_: str, data: dict[str, Any]) -> None:
+    """Append a run event under the run lock and wake the SSE tails."""
+    async with ctx.sessionmaker() as s, s.begin():
+        run = await s.scalar(select(Run).where(Run.id == ctx.run_id).with_for_update())
+        if run is None:
+            return
+        await append_event(s, run, type_, data)
+    await ctx.notifier.notify_run(ctx.run_id)
+
+
+async def record_decision(ctx: "RunContext", **fields: Any) -> None:
+    """Trace a coordination or assessment step (doc 05 §Traceability). No secrets, no reasoning."""
+    async with ctx.sessionmaker() as s, s.begin():
+        s.add(DecisionEvent(run_id=ctx.run_id, created_at=utcnow(), **fields))

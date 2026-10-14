@@ -1,5 +1,6 @@
 """Application factory: `uvicorn --factory app.main:create_app`."""
 
+import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from typing import Any
@@ -13,6 +14,8 @@ from app.catalog import Catalog, load_catalog
 from app.persistence.db import make_engine, make_sessionmaker, ping
 from app.providers.base import ProviderFailure
 from app.providers.demo import DemoCoordinator, DemoGeneration
+from app.providers.jev_adapter import JevCoordinator
+from app.providers.openai_adapter import OpenAIGeneration
 from app.services import orchestrator
 from app.settings import AppEnv, get_env
 from app.workers.context import RunContext, RunResult
@@ -21,13 +24,23 @@ from app.workers.runner import Runner
 
 
 def providers_for(env: AppEnv, catalog: Catalog) -> dict[str, Any]:
-    """Demo only when explicitly chosen; live adapters land in Tasks 13-14."""
+    """Demo only when explicitly chosen (G3); live mode never falls back to demo output."""
     if env.APP_PROVIDER_MODE == "demo":
         return {
             "generation": DemoGeneration(catalog.fixture_packs),
             "coordinator": DemoCoordinator(),
         }
-    return {"generation": NotWired(), "coordinator": NotWired()}  # Tasks 13-14
+    generation: Any = (
+        OpenAIGeneration(env.OPENAI_API_KEY.get_secret_value())
+        if env.OPENAI_API_KEY
+        else NotWired()
+    )
+    coordinator: Any = (
+        JevCoordinator(env.TYPESAFE_API_KEY.get_secret_value(), env.JEV_MODEL)
+        if env.TYPESAFE_API_KEY
+        else NotWired()  # G5: Jev-guided turns use the labeled fixed-order fallback
+    )
+    return {"generation": generation, "coordinator": coordinator}
 
 
 class NotWired:
@@ -41,7 +54,7 @@ class NotWired:
     async def web_research(self, **_: Any) -> Any:
         raise ProviderFailure("provider_not_ready", "The live OpenAI adapter is not available.")
 
-    async def ask(self, state: Any, questions: Any) -> Any:
+    async def ask(self, state: Any, questions: Any, model: str | None = None) -> Any:
         raise ProviderFailure("provider_not_ready", "The live Jev adapter is not available.")
 
 
@@ -78,7 +91,12 @@ def create_app(env: AppEnv | None = None, catalog: Catalog | None = None) -> Fas
         return await ping(engine)
 
     app.state.db_ping = db_ping
-    deps = orchestrator.Deps(env=env, catalog=catalog, **providers_for(env, catalog))
+    deps = orchestrator.Deps(
+        env=env,
+        catalog=catalog,
+        gen_slots=asyncio.Semaphore(catalog.defaults.limits.concurrent_generations),
+        **providers_for(env, catalog),
+    )
     app.state.deps = deps
 
     async def run_pipeline(ctx: RunContext) -> RunResult:
