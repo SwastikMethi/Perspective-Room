@@ -14,6 +14,25 @@ export function defaultControl(): Schemas['TurnControl'] {
   }
 }
 
+/**
+ * An earlier send under this key ended without an answer (network), and the new request is
+ * different. Neither may silently replace the other: the UI asks to resend or discard it.
+ */
+export class PendingConflict extends Error {
+  draftKey: string
+  earlier: string
+  constructor(draftKey: string, earlier: string) {
+    super('An earlier send may not have gone through.')
+    this.draftKey = draftKey
+    this.earlier = earlier
+  }
+}
+
+export const discardPending = (draftKey: string) =>
+  useDrafts.getState().set(draftKey, { pending: undefined })
+
+const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b)
+
 /** A definitive server answer means the request did not go through; drop the keys. */
 function forgetIfDefinitive(draftKey: string, e: unknown) {
   if (e instanceof ApiError && e.status > 0)
@@ -27,6 +46,8 @@ export async function sendNewChat(
 ): Promise<string> {
   const drafts = useDrafts.getState()
   let pending = drafts.get(draftKey)?.pending
+  if (pending?.createKey && pending.createBody && !sameJson(pending.createBody, createBody))
+    throw new PendingConflict(draftKey, pending.createBody.idea)
   if (!pending?.createKey || !pending.createBody) {
     pending = { createKey: newIdempotencyKey(), createBody, turnKey: newIdempotencyKey() }
     drafts.set(draftKey, { text: createBody.idea, pending })
@@ -86,12 +107,19 @@ function finishSend(draftKey: string, sent: string) {
 export async function sendTurn(
   sessionId: string,
   body: Schemas['TurnCreate'],
+  draftKey: string = sessionId,
 ): Promise<Schemas['Run']> {
   const drafts = useDrafts.getState()
-  let pending = drafts.get(sessionId)?.pending
+  let pending = drafts.get(draftKey)?.pending
+  if (
+    pending?.turnKey &&
+    pending.turnBody &&
+    !(pending.turnBody.message === body.message && sameJson(pending.turnBody.control, body.control))
+  )
+    throw new PendingConflict(draftKey, pending.turnBody.message)
   if (!pending?.turnKey || !pending.turnBody) {
     pending = { turnKey: newIdempotencyKey(), turnBody: body }
-    drafts.set(sessionId, { pending })
+    drafts.set(draftKey, { pending })
   }
   try {
     const run = await unwrap(
@@ -103,10 +131,104 @@ export async function sendTurn(
         body: pending.turnBody!,
       }),
     )
-    finishSend(sessionId, pending.turnBody!.message)
+    if (draftKey === sessionId) finishSend(sessionId, pending.turnBody!.message)
+    else drafts.clear(draftKey)
     return run
   } catch (e) {
-    forgetIfDefinitive(sessionId, e)
+    forgetIfDefinitive(draftKey, e)
+    throw e
+  }
+}
+
+/**
+ * Edit-and-branch / regenerate (doc 14): fork BEFORE the user message, then submit the returned
+ * template (edited text for edit). Both requests keep stable keys under `operationKey` until the
+ * turn is accepted, so a retry or refresh never creates a second branch or a second turn.
+ */
+export async function sendBranch(opts: {
+  sourceId: string
+  operationKey: string
+  forkBody: Schemas['ForkCreate']
+  message?: string
+}): Promise<string> {
+  const drafts = useDrafts.getState()
+  let pending = drafts.get(opts.operationKey)?.pending
+  if (pending?.turnBody && opts.message !== undefined && pending.turnBody.message !== opts.message)
+    throw new PendingConflict(opts.operationKey, pending.turnBody.message)
+  if (!pending?.forkKey || !pending.forkBody) {
+    pending = {
+      forkKey: newIdempotencyKey(),
+      forkBody: opts.forkBody,
+      turnKey: newIdempotencyKey(),
+    }
+    drafts.set(opts.operationKey, { text: opts.message ?? '', pending })
+  }
+  let result: Schemas['ForkResult']
+  try {
+    result = await unwrap(
+      api.POST('/api/v1/sessions/{session_id}/forks', {
+        params: {
+          path: { session_id: opts.sourceId },
+          header: { 'Idempotency-Key': pending.forkKey! },
+        },
+        body: pending.forkBody!,
+      }),
+    )
+  } catch (e) {
+    forgetIfDefinitive(opts.operationKey, e)
+    throw e
+  }
+  const template = result.turn_template
+  if (template && !pending.turnBody) {
+    pending = {
+      ...pending,
+      sessionId: result.session.id,
+      turnBody: { ...template, message: opts.message ?? template.message },
+    }
+    drafts.set(opts.operationKey, { pending })
+  }
+  if (pending.turnBody) {
+    try {
+      await unwrap(
+        api.POST('/api/v1/sessions/{session_id}/turns', {
+          params: {
+            path: { session_id: result.session.id },
+            header: { 'Idempotency-Key': pending.turnKey! },
+          },
+          body: pending.turnBody,
+        }),
+      )
+    } catch (e) {
+      if (e instanceof ApiError && e.status > 0) {
+        // The branch exists; its turn was refused. Keep the text as that branch's draft.
+        drafts.clear(opts.operationKey)
+        useDrafts.getState().set(result.session.id, { text: pending.turnBody.message })
+        throw new TurnRejected(result.session.id, e)
+      }
+      throw e
+    }
+  }
+  drafts.clear(opts.operationKey)
+  return result.session.id
+}
+
+/**
+ * One stable idempotency key per user operation (`opKey`), kept until the server answers, so a
+ * retry after a lost response returns the first result instead of creating a second chat/folder.
+ */
+export async function withOperationKey<T>(opKey: string, fn: (key: string) => Promise<T>) {
+  const drafts = useDrafts.getState()
+  let key = drafts.get(opKey)?.pending?.forkKey
+  if (!key) {
+    key = newIdempotencyKey()
+    drafts.set(opKey, { pending: { forkKey: key } })
+  }
+  try {
+    const out = await fn(key)
+    useDrafts.getState().clear(opKey)
+    return out
+  } catch (e) {
+    if (e instanceof ApiError && e.status > 0) useDrafts.getState().clear(opKey)
     throw e
   }
 }

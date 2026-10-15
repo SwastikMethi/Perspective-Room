@@ -23,11 +23,15 @@ depends_on: str | Sequence[str] | None = None
 def upgrade() -> None:
     op.add_column(
         "messages",
-        sa.Column("round_info", postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), nullable=True),
+        sa.Column(
+            "round_info", postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), nullable=True
+        ),
     )
     op.add_column(
         "runs",
-        sa.Column("intake", postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), nullable=True),
+        sa.Column(
+            "intake", postgresql.JSONB(none_as_null=True, astext_type=sa.Text()), nullable=True
+        ),
     )
 
 

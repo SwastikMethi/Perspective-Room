@@ -10,14 +10,6 @@ from app.main import create_app
 
 # Operations not routed yet. Each router task removes its entries; Task 28 asserts this is empty.
 PENDING: set[str] = {
-    "checkProviders",
-    "listSessions",
-    "updateSessionOrganization",
-    "listFolders",
-    "createFolder",
-    "getFolder",
-    "updateFolder",
-    "deleteFolder",
     "listEvaluationCases",
     "createEvaluation",
     "listEvaluations",

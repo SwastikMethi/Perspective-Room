@@ -1,12 +1,31 @@
 {
   "version": "0.0.1",
   "configurations": [
-    { "name": "app", "url": "http://127.0.0.1:8000" },
+    {
+      "name": "app",
+      "url": "http://127.0.0.1:8000"
+    },
     {
       "name": "frontend-dev",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["--prefix", "frontend", "run", "dev"],
+      "runtimeArgs": [
+        "--prefix",
+        "frontend",
+        "run",
+        "dev"
+      ],
       "port": 5173
+    },
+    {
+      "name": "demo-qa",
+      "runtimeExecutable": "env",
+      "runtimeArgs": [
+        "E2E_PORT=8020",
+        "E2E_DATABASE_URL=postgresql+asyncpg://perspective:local_development_only@127.0.0.1:55432/perspective_qa",
+        "bash",
+        "scripts/e2e_server.sh"
+      ],
+      "port": 8020
     }
   ]
 }

@@ -12,7 +12,10 @@ import {
 import { Dialog, Tooltip } from 'radix-ui'
 import { type ReactNode, useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router'
+import { SearchDialog } from '../features/search/SearchDialog'
 import { useUi } from '../stores/ui'
+import { DialogHost, NoticeHost } from './Dialogs'
+import { useReturnFocus } from './focus'
 import { HeaderSlots } from './HeaderActions'
 import { Logo } from './Logo'
 import { ReadinessBanner } from './ReadinessBanner'
@@ -42,13 +45,19 @@ function RailTip({ label, children }: { label: string; children: ReactNode }) {
 }
 
 /** Collapsed 64px rail: every destination stays reachable with labeled icons. */
-function Rail({ onExpand, onSearch }: { onExpand: () => void; onSearch: () => void }) {
+function Rail({
+  onExpand,
+  onSearch,
+}: {
+  onExpand: (section?: 'chats' | 'folders') => void
+  onSearch: () => void
+}) {
   return (
     <div className="flex h-full flex-col items-center gap-2 bg-sidebar py-3">
       <RailTip label="Expand sidebar">
         <button
           type="button"
-          onClick={onExpand}
+          onClick={() => onExpand()}
           aria-label="Expand sidebar"
           aria-expanded="false"
           className={railButton}
@@ -71,12 +80,22 @@ function Rail({ onExpand, onSearch }: { onExpand: () => void; onSearch: () => vo
         </button>
       </RailTip>
       <RailTip label="Chats">
-        <button type="button" onClick={onExpand} aria-label="Chats" className={railButton}>
+        <button
+          type="button"
+          onClick={() => onExpand('chats')}
+          aria-label="Chats"
+          className={railButton}
+        >
           <MessagesSquare aria-hidden size={20} />
         </button>
       </RailTip>
       <RailTip label="Folders">
-        <button type="button" onClick={onExpand} aria-label="Folders" className={railButton}>
+        <button
+          type="button"
+          onClick={() => onExpand('folders')}
+          aria-label="Folders"
+          className={railButton}
+        >
           <Folder aria-hidden size={20} />
         </button>
       </RailTip>
@@ -100,14 +119,7 @@ function Rail({ onExpand, onSearch }: { onExpand: () => void; onSearch: () => vo
   )
 }
 
-export interface ShellSlots {
-  /** Lists rendered inside the sidebar history region (Task 22). */
-  history?: (close: () => void) => ReactNode
-  folderAction?: ReactNode
-  search?: (open: boolean, setOpen: (open: boolean) => void) => ReactNode
-}
-
-export function AppShell({ slots = {} }: { slots?: ShellSlots }) {
+export function AppShell() {
   const expanded = useUi((s) => s.sidebarExpanded)
   const setExpanded = useUi((s) => s.setSidebarExpanded)
   const drawerOpen = useUi((s) => s.mobileDrawerOpen)
@@ -115,6 +127,7 @@ export function AppShell({ slots = {} }: { slots?: ShellSlots }) {
   const narrow = useMediaQuery(NARROW_QUERY)
   const [searchOpen, setSearchOpen] = useState(false)
   const [actionsEl, setActionsEl] = useState<HTMLElement | null>(null)
+  const returnFocus = useReturnFocus(drawerOpen)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -128,6 +141,15 @@ export function AppShell({ slots = {} }: { slots?: ShellSlots }) {
   }, [])
 
   const closeDrawer = () => setDrawerOpen(false)
+  const expandTo = (section?: 'chats' | 'folders') => {
+    setExpanded(true)
+    if (section)
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`sidebar-${section}`)
+        el?.scrollIntoView({ block: 'nearest' })
+        el?.focus()
+      })
+  }
   const openSearch = () => {
     setDrawerOpen(false)
     setSearchOpen(true)
@@ -151,14 +173,9 @@ export function AppShell({ slots = {} }: { slots?: ShellSlots }) {
               }}
             >
               {expanded ? (
-                <Sidebar
-                  onCollapse={() => setExpanded(false)}
-                  onSearch={openSearch}
-                  history={slots.history?.(() => {})}
-                  folderAction={slots.folderAction}
-                />
+                <Sidebar onCollapse={() => setExpanded(false)} onSearch={openSearch} />
               ) : (
-                <Rail onExpand={() => setExpanded(true)} onSearch={openSearch} />
+                <Rail onExpand={expandTo} onSearch={openSearch} />
               )}
             </nav>
           )}
@@ -167,6 +184,7 @@ export function AppShell({ slots = {} }: { slots?: ShellSlots }) {
               <Dialog.Portal>
                 <Dialog.Overlay className="fixed inset-0 z-40 bg-black/50" />
                 <Dialog.Content
+                  onCloseAutoFocus={returnFocus}
                   aria-label="Navigation"
                   className="fixed inset-y-0 left-0 z-50 w-[min(var(--layout-mobile-drawer-max),88vw)] border-r border-border shadow-xl"
                 >
@@ -181,12 +199,7 @@ export function AppShell({ slots = {} }: { slots?: ShellSlots }) {
                     <X aria-hidden size={20} />
                   </Dialog.Close>
                   <nav aria-label="Primary" className="h-full">
-                    <Sidebar
-                      onSearch={openSearch}
-                      onNavigate={closeDrawer}
-                      history={slots.history?.(closeDrawer)}
-                      folderAction={slots.folderAction}
-                    />
+                    <Sidebar onSearch={openSearch} onNavigate={closeDrawer} />
                   </nav>
                 </Dialog.Content>
               </Dialog.Portal>
@@ -212,12 +225,14 @@ export function AppShell({ slots = {} }: { slots?: ShellSlots }) {
               <ThemeSwitch />
             </header>
             <ReadinessBanner />
-            <main id="main" tabIndex={-1} className="min-h-0 flex-1 overflow-y-auto">
+            <main id="main" tabIndex={-1} className="relative min-h-0 flex-1 overflow-y-auto">
               <Outlet />
             </main>
           </div>
         </div>
-        {slots.search?.(searchOpen, setSearchOpen)}
+        <SearchDialog open={searchOpen} onOpenChange={setSearchOpen} />
+        <DialogHost />
+        <NoticeHost />
       </HeaderSlots.Provider>
     </Tooltip.Provider>
   )

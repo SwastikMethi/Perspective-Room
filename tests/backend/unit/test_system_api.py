@@ -121,3 +121,58 @@ async def test_health_reports_database_and_worker_state():
         and r.json()["status"] == "degraded"
         and r.json()["database"] == "failed"
     )
+
+
+class _Checks:
+    """Stands in for a live adapter's explicit connection check."""
+
+    def __init__(self, failure=None):
+        self.failure, self.calls = failure, 0
+
+    async def check(self, *args):
+        self.calls += 1
+        if self.failure:
+            raise self.failure
+
+
+async def test_provider_check_in_demo_mode_makes_no_network_call():
+    app = create_app(env=make_env(APP_PROVIDER_MODE="demo"))
+    async with client_for(app) as c:
+        r = await c.post("/api/v1/provider-checks")
+    assert r.status_code == 200
+    assert r.json()["openai"]["status"] == "demo" and r.json()["jev"]["status"] == "demo"
+
+
+async def test_provider_check_reports_missing_keys_by_name():
+    app = create_app(env=make_env())
+    async with client_for(app) as c:
+        body = (await c.post("/api/v1/provider-checks")).json()
+    assert body["openai"]["status"] == "missing" and "OPENAI_API_KEY" in body["openai"]["message"]
+    assert body["jev"]["status"] == "missing" and "TYPESAFE_API_KEY" in body["jev"]["message"]
+
+
+async def test_provider_check_runs_each_configured_check_once_and_sanitizes_failures():
+    from app.providers.base import ProviderFailure
+
+    secret = "sk-test-SECRET-never-shown"
+    app = create_app(env=make_env(OPENAI_API_KEY=secret, TYPESAFE_API_KEY="ts-test-key"))
+    ok, refused = (
+        _Checks(),
+        _Checks(
+            ProviderFailure("provider_not_ready", "The provider rejected the configured API key.")
+        ),
+    )
+    app.state.deps.generation, app.state.deps.coordinator = ok, refused
+    async with client_for(app) as c:
+        r = await c.post("/api/v1/provider-checks")
+    body = r.json()
+    assert body["openai"]["status"] == "ok" and body["jev"]["status"] == "failed"
+    assert "rejected" in body["jev"]["message"] and secret not in r.text
+    assert ok.calls == 1 and refused.calls == 1
+
+
+async def test_settings_report_a_configured_cost_cap_without_claiming_to_enforce_it():
+    app = create_app(env=make_env(MAX_SESSION_USD="2.50"))
+    async with client_for(app) as c:
+        limits = (await c.get("/api/v1/settings")).json()["limits"]
+    assert limits["max_session_usd"] == 2.5 and limits["cost_cap_enforced"] is False

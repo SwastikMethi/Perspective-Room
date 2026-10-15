@@ -572,12 +572,23 @@ class Turn:
         await update_run(self.ctx, intake=self.intake)
         title = self.intake["title_suggestion"].strip()[:120]
         async with self.ctx.sessionmaker() as s, s.begin():  # one-time compare-and-set (G22)
+            user = await s.get(Message, UUID(self.message_id))
+            earlier_turn = (
+                select(Message.id)
+                .where(
+                    Message.session_id == self.ctx.session_id,
+                    Message.role == "user",
+                    Message.sequence < (user.sequence if user else 0),
+                )
+                .exists()
+            )
             await s.execute(
                 update(SessionRow)
                 .where(
                     SessionRow.id == self.ctx.session_id,
                     SessionRow.title_is_custom.is_(False),
                     SessionRow.title == auto_title(self.brief["idea"]),
+                    ~earlier_turn,  # only the opening turn may name the chat
                 )
                 .values(title=title)
             )

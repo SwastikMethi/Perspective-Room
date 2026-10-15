@@ -2,7 +2,8 @@
 
 Output is built from the persona profile, the move and a hash of the focus — never the canned
 `example` text. Demo-only test directives in the user's message (ignored in live mode):
-  [[demo:delay=MS]] [[demo:fail=<persona|all>]] [[demo:refuse]] [[demo:incomplete]] [[demo:long]]
+  [[demo:delay=MS]] [[demo:fail=<persona|all>]] [[demo:fail_once=<persona>]] [[demo:refuse]]
+  [[demo:incomplete]] [[demo:long]]
   [[demo:jev=malformed|down]] [[demo:research=fail|empty]] [[demo:research]]
 """
 
@@ -111,6 +112,7 @@ class DemoGeneration:
 
     def __init__(self, fixture_packs: dict[str, dict[str, Any]] | None = None) -> None:
         self.fixture_packs = fixture_packs or {}
+        self._failed_once: set[tuple[str, str]] = set()  # (user message, persona) for fail_once
 
     async def structured(
         self,
@@ -131,6 +133,11 @@ class DemoGeneration:
             await asyncio.sleep(int(d["delay"] or 0) / 1000)
         if "fail" in d and d["fail"] in ("all", persona) and schema_name == "contribution":
             raise ProviderFailure("provider_error", "Demo failure requested for this reply.")
+        if "fail_once" in d and d["fail_once"] == persona and schema_name == "contribution":
+            key = (str(p.get("latest_user_message_id", "")), str(persona))
+            if key not in self._failed_once:  # lets a Retry succeed (demo walkthroughs, e2e)
+                self._failed_once.add(key)
+                raise ProviderFailure("provider_error", "Demo failure requested for this reply.")
         if "refuse" in d and schema_name == "contribution":
             return Refused("Demo refusal requested.", "demo", None, DEMO_USAGE)
         if "incomplete" in d and schema_name == "contribution":

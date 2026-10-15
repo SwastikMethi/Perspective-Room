@@ -16,11 +16,13 @@ test('new chat → contributions → refresh shows the same transcript once', as
 test('Stop a delayed run: no late replies arrive', async ({ page }) => {
   await page.goto('/')
   await page.getByLabel('Your idea').fill('[[demo:delay=1500]] A slow idea to stop')
-  await page.getByRole('button', { name: 'Send' }).click()
+  await page.getByRole('button', { name: 'Send', exact: true }).click()
   await expect(page).toHaveURL(/\/rooms\//)
   await expect(page.getByTestId('contribution')).toHaveCount(1, { timeout: 15_000 })
   await page.getByRole('button', { name: 'Stop' }).click()
-  await expect(page.getByRole('button', { name: 'Send' })).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeVisible({
+    timeout: 10_000,
+  })
   const count = await page.getByTestId('contribution').count()
   await page.waitForTimeout(3500)
   await expect(page.getByTestId('contribution')).toHaveCount(count)
@@ -50,5 +52,5 @@ test('reload mid-run reconnects and shows every reply exactly once', async ({ pa
     await expect(
       page.locator(`[data-testid="contribution"][data-persona="${persona}"]`),
     ).toHaveCount(1)
-  await expect(page.getByRole('button', { name: 'Send' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeVisible()
 })

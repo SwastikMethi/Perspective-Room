@@ -393,6 +393,18 @@ async def test_memory_and_title_are_updated_after_the_first_turn(
     assert row.title == "Neighborhood tool sharing for renters" and row.title_is_custom is False
 
 
+async def test_the_automatic_title_is_replaced_at_most_once(running_app, client, db, new_session):
+    """G22: intake may retitle only on the first turn — even when its suggestion equalled the
+    automatic title, a later turn must not retitle the chat."""
+    use(running_app, ScriptedJev())
+    idea = "Neighborhood tool sharing for renters"
+    s = await new_session(idea=idea)
+    await wait_done(db, (await turn(client, s["id"], idea))["id"])
+    version = (await client.get(f"/api/v1/sessions/{s['id']}")).json()["version"]
+    await wait_done(db, (await turn(client, s["id"], "A totally different topic", version))["id"])
+    assert (await client.get(f"/api/v1/sessions/{s['id']}")).json()["title"] == idea
+
+
 async def test_custom_title_is_never_overwritten(running_app, client, db, new_session):
     use(running_app, ScriptedJev())
     s = await new_session(title="My own title")

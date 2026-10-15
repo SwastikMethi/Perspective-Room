@@ -537,6 +537,7 @@ async def retry_run(db: AsyncSession, env: AppEnv, run_id: UUID, body: api.Retry
     )
     db.add(run)
     await db.flush()
+    user.run_id = run.id  # the round's message points at its latest attempt (what a client retries)
     await append_event(db, run, "run.queued", queued_data(run))
     return run_out(run)
 

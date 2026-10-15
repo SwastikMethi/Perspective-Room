@@ -1,10 +1,14 @@
 """Health, persona catalog and read-only settings."""
 
+import asyncio
+from typing import Any
+
 from fastapi import APIRouter, Request
 
 from app.api.errors import ERROR_RESPONSES
 from app.catalog import Catalog
-from app.domain.api import Health, PersonaList, Settings
+from app.domain.api import Health, Jev, Openai, PersonaList, ProviderCheck, Settings
+from app.providers.base import ProviderFailure
 from app.settings import AppEnv
 
 router = APIRouter(prefix="/api/v1", responses=ERROR_RESPONSES)
@@ -45,6 +49,55 @@ async def get_settings(request: Request) -> Settings:
         openai_model=env.OPENAI_MODEL,
         research_model=env.OPENAI_RESEARCH_MODEL,
         jev_model=env.JEV_MODEL,
-        limits=cat.defaults.limits.model_dump(),
+        # G21: no rate card, so a configured cap is shown but never claimed as enforced.
+        limits={
+            **cat.defaults.limits.model_dump(),
+            "max_session_usd": env.MAX_SESSION_USD,
+            "cost_cap_enforced": False,
+        },
         local_only=True,
+    )
+
+
+CHECK_TIMEOUT_S = 15.0
+
+
+async def _check(configured: bool, key_name: str, fn: Any) -> tuple[str, str]:
+    if not configured:
+        return "missing", f"{key_name} is not set. Add it to .env and restart the app."
+    try:
+        await asyncio.wait_for(fn(), CHECK_TIMEOUT_S)
+    except ProviderFailure as f:  # adapter messages are fixed, sanitized strings
+        return "failed", f.message
+    except TimeoutError:
+        return "failed", f"No answer within {CHECK_TIMEOUT_S:.0f} seconds."
+    return "ok", "Connected; the configured model is available."
+
+
+@router.post(
+    "/provider-checks",
+    operation_id="checkProviders",
+    tags=["provider-checks"],
+    response_model=ProviderCheck,
+)
+async def check_providers(request: Request) -> ProviderCheck:
+    """Explicit, user-triggered connection check: lists/retrieves models, never generates."""
+    env: AppEnv = request.app.state.env
+    deps = request.app.state.deps
+    if env.APP_PROVIDER_MODE == "demo":
+        msg = "Demo mode: no external calls are made."
+        return ProviderCheck(
+            openai=Openai(status="demo", message=msg), jev=Jev(status="demo", message=msg)
+        )
+    openai_status, openai_msg = await _check(
+        env.OPENAI_API_KEY is not None,
+        "OPENAI_API_KEY",
+        lambda: deps.generation.check(env.OPENAI_MODEL),
+    )
+    jev_status, jev_msg = await _check(
+        env.TYPESAFE_API_KEY is not None, "TYPESAFE_API_KEY", lambda: deps.coordinator.check()
+    )
+    return ProviderCheck(
+        openai=Openai(status=openai_status, message=openai_msg),  # type: ignore[arg-type]
+        jev=Jev(status=jev_status, message=jev_msg),  # type: ignore[arg-type]
     )

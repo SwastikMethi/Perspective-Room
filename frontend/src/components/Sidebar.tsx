@@ -1,7 +1,6 @@
 import {
   Archive,
   FlaskConical,
-  FolderPlus,
   MessagesSquare,
   PanelLeftClose,
   Pin,
@@ -11,7 +10,8 @@ import {
   Users,
 } from 'lucide-react'
 import type { ReactNode } from 'react'
-import { Link, NavLink } from 'react-router'
+import { Link, NavLink, useLocation } from 'react-router'
+import { SidebarHistory } from '../features/workspace/SidebarHistory'
 import { Logo } from './Logo'
 
 const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform)
@@ -20,39 +20,43 @@ const navItem =
   'flex min-h-10 items-center gap-3 rounded-control px-3 text-[15px] text-text hover:bg-surface-subtle ' +
   'aria-[current=page]:bg-selection-surface aria-[current=page]:font-medium'
 
-export function SidebarSection({
-  title,
-  action,
+/** `/chats` links differ only by `?filter=`; NavLink ignores the query, so match it here. */
+function ChatsLink({
+  filter,
+  id,
+  onNavigate,
   children,
 }: {
-  title: string
-  action?: ReactNode
-  children?: ReactNode
+  filter: 'all' | 'pinned' | 'archived'
+  id?: string
+  onNavigate?: () => void
+  children: ReactNode
 }) {
+  const { pathname, search } = useLocation()
+  const current = new URLSearchParams(search).get('filter') ?? 'all'
+  const active = pathname === '/chats' && current === filter
   return (
-    <section aria-label={title} className="mt-5">
-      <div className="flex items-center justify-between px-3 pb-1">
-        <h2 className="text-[12px] font-medium tracking-[0.12em] text-muted uppercase">{title}</h2>
-        {action}
-      </div>
+    <Link
+      id={id}
+      to={filter === 'all' ? '/chats' : `/chats?filter=${filter}`}
+      onClick={onNavigate}
+      aria-current={active ? 'page' : undefined}
+      className={navItem}
+    >
       {children}
-    </section>
+    </Link>
   )
 }
 
-/** Expanded 272px navigation. History lists plug in via `history` (doc 14 order). */
+/** Expanded 272px navigation in doc 03 order; the history region scrolls on its own. */
 export function Sidebar({
   onCollapse,
   onSearch,
   onNavigate,
-  history,
-  folderAction,
 }: {
   onCollapse?: () => void
   onSearch: () => void
   onNavigate?: () => void
-  history?: ReactNode
-  folderAction?: ReactNode
 }) {
   return (
     <div className="flex h-full flex-col bg-sidebar">
@@ -87,32 +91,22 @@ export function Sidebar({
           className="mt-3 flex min-h-11 w-full items-center gap-3 rounded-control border border-border px-3 text-muted hover:text-text"
         >
           <Search aria-hidden size={18} /> Search chats
-          <kbd className="ml-auto text-[12px]">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
+          <kbd className="ml-auto font-sans text-[12px]">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
         </button>
       </div>
-      <div className="mt-3 min-h-0 flex-1 overflow-y-auto px-2" aria-label="Chat history">
-        <NavLink to="/chats" end onClick={onNavigate} className={navItem}>
+      <div className="mt-3 min-h-0 flex-1 overflow-y-auto px-2 pb-3" aria-label="Chat history">
+        <ChatsLink filter="all" id="sidebar-chats" onNavigate={onNavigate}>
           <MessagesSquare aria-hidden size={18} /> All chats
-        </NavLink>
-        <NavLink to="/chats?filter=pinned" onClick={onNavigate} className={navItem}>
+        </ChatsLink>
+        <ChatsLink filter="pinned" onNavigate={onNavigate}>
           <Pin aria-hidden size={18} /> Pinned
-        </NavLink>
-        <SidebarSection
-          title="Folders"
-          action={
-            folderAction ?? (
-              <span aria-hidden className="grid size-8 place-items-center text-muted">
-                <FolderPlus size={16} />
-              </span>
-            )
-          }
-        />
-        {history}
+        </ChatsLink>
+        <SidebarHistory onNavigate={onNavigate} />
       </div>
       <div className="border-t border-border px-2 py-2">
-        <NavLink to="/chats?filter=archived" onClick={onNavigate} className={navItem}>
+        <ChatsLink filter="archived" onNavigate={onNavigate}>
           <Archive aria-hidden size={18} /> Archived
-        </NavLink>
+        </ChatsLink>
         <NavLink to="/personalities" onClick={onNavigate} className={navItem}>
           <Users aria-hidden size={18} /> Personalities
         </NavLink>

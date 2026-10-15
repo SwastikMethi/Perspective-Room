@@ -132,3 +132,14 @@ async def test_demo_coordinator_answers_every_question_validly():
     assert ans["next_speaker"]["choice"] in questions["next_speaker"]["criteria"]
     assert abs(sum(ans["next_speaker"]["probabilities"].values()) - 1) < 1e-9
     assert 0 <= ans["fit"]["score"] <= 2 and set(ans["fit"]["probabilities"]) == {"0", "1", "2"}
+
+
+async def test_fail_once_fails_the_first_attempt_per_message_then_succeeds():
+    gen = DemoGeneration()
+    msg = "[[demo:fail_once=skeptic]] go"
+    with pytest.raises(ProviderFailure):
+        await ask(gen, "contribution", latest_user_message=msg, latest_user_message_id="m1")
+    ok = await ask(gen, "contribution", latest_user_message=msg, latest_user_message_id="m1")
+    assert isinstance(ok, Structured)
+    with pytest.raises(ProviderFailure):  # a different turn fails once too
+        await ask(gen, "contribution", latest_user_message=msg, latest_user_message_id="m2")

@@ -250,6 +250,7 @@ async def test_retry_fills_only_the_missing_replies(running_app, client, db, new
     assert sorted(m.persona_id for m in msgs if m.persona_id) == ["explorer", "mentor", "skeptic"]
     user = msgs[0]
     assert user.round_status == "completed"
+    assert user.run_id == second.id  # the round's message points at its latest run (UI retry)
 
 
 async def test_retry_is_refused_for_completed_or_superseded_rounds(

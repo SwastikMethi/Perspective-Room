@@ -1,5 +1,5 @@
 // Query keys and fetchers shared across features.
-import { useQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQuery } from '@tanstack/react-query'
 import { api, type Schemas, unwrap } from './client'
 
 export const keys = {
@@ -11,6 +11,18 @@ export const keys = {
   runEvents: (id: string) => ['run-events', id] as const,
   sources: (id: string) => ['sources', id] as const,
   ideas: (id: string) => ['ideas', id] as const,
+  history: (params: HistoryParams) => ['history', params] as const,
+  folders: ['folders'] as const,
+  folder: (id: string) => ['folders', id] as const,
+}
+
+export interface HistoryParams {
+  q?: string
+  folder_id?: string
+  unfiled?: boolean
+  pinned?: boolean
+  archive?: 'active' | 'archived' | 'all'
+  limit?: number
 }
 
 export type MessageList = Schemas['MessageList']
@@ -70,5 +82,88 @@ export function useRun(id: string | null | undefined) {
     queryKey: keys.run(id ?? 'none'),
     enabled: Boolean(id),
     queryFn: () => unwrap(api.GET('/api/v1/runs/{run_id}', { params: { path: { run_id: id! } } })),
+  })
+}
+
+/** Paginated, lightweight chat lists (never transcripts). Pages dedupe by session ID. */
+export function useHistory(params: HistoryParams, opts: { enabled?: boolean } = {}) {
+  return useInfiniteQuery({
+    queryKey: keys.history(params),
+    enabled: opts.enabled ?? true,
+    initialPageParam: null as string | null,
+    queryFn: ({ pageParam, signal }) =>
+      unwrap(
+        api.GET('/api/v1/sessions', {
+          params: { query: { limit: 30, ...params, ...(pageParam ? { cursor: pageParam } : {}) } },
+          signal,
+        }),
+      ),
+    getNextPageParam: (last) => last.next_cursor,
+    // doc 14: poll lightweight history only while a listed chat is working; refetch on focus.
+    refetchInterval: (query) =>
+      query.state.data?.pages.some((p) => p.items.some((s) => s.active_run_id)) ? 5000 : false,
+    refetchOnWindowFocus: true,
+  })
+}
+
+export function historyItems(data: { pages: Schemas['SessionList'][] } | undefined) {
+  const seen = new Set<string>()
+  return (data?.pages ?? [])
+    .flatMap((p) => p.items)
+    .filter((s) => !seen.has(s.id) && Boolean(seen.add(s.id)))
+}
+
+export function useFolders() {
+  return useQuery({
+    queryKey: keys.folders,
+    queryFn: async () => {
+      const items: Schemas['Folder'][] = []
+      let cursor: string | null = null
+      do {
+        const page: Schemas['FolderList'] = await unwrap(
+          api.GET('/api/v1/folders', {
+            params: { query: { limit: 100, ...(cursor ? { cursor } : {}) } },
+          }),
+        )
+        items.push(...page.items)
+        cursor = page.next_cursor
+      } while (cursor)
+      return items
+    },
+  })
+}
+
+export function useIdeas(sessionId: string) {
+  return useQuery({
+    queryKey: keys.ideas(sessionId),
+    queryFn: () =>
+      unwrap(
+        api.GET('/api/v1/sessions/{session_id}/idea-cards', {
+          params: { path: { session_id: sessionId } },
+        }),
+      ),
+  })
+}
+
+export function useSources(sessionId: string) {
+  return useQuery({
+    queryKey: keys.sources(sessionId),
+    queryFn: async () => {
+      const items: Schemas['Source'][] = []
+      let cursor: string | null = null
+      do {
+        const page: Schemas['SourceList'] = await unwrap(
+          api.GET('/api/v1/sessions/{session_id}/sources', {
+            params: {
+              path: { session_id: sessionId },
+              query: { limit: 100, ...(cursor ? { cursor } : {}) },
+            },
+          }),
+        )
+        items.push(...page.items)
+        cursor = page.next_cursor
+      } while (cursor)
+      return items
+    },
   })
 }

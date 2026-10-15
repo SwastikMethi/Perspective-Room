@@ -21,5 +21,6 @@ asyncio.run(main())
 PY
 uv run alembic upgrade head
 export APP_PROVIDER_MODE=demo OPENAI_API_KEY= TYPESAFE_API_KEY=
-export APP_ALLOWED_ORIGINS=http://127.0.0.1:8010 STATIC_DIR="$root/frontend/dist"
-exec uv run uvicorn --factory app.main:create_app --host 127.0.0.1 --port 8010
+port="${E2E_PORT:-8010}"
+export APP_ALLOWED_ORIGINS="http://127.0.0.1:$port" STATIC_DIR="$root/frontend/dist"
+exec uv run uvicorn --factory app.main:create_app --host 127.0.0.1 --port "$port"

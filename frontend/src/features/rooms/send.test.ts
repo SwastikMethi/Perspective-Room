@@ -83,9 +83,70 @@ describe('sendTurn', () => {
         turnBody: { expected_version: 1, message: 'original', control: {} as never },
       },
     })
-    await sendTurn('s1', { expected_version: 1, message: 'ignored', control: {} as never })
+    // Resending the earlier request (same body) settles it without touching the newer text.
+    await sendTurn('s1', { expected_version: 1, message: 'original', control: {} as never })
     expect(useDrafts.getState().get('s1')?.text).toBe('edited after the lost response')
     expect(useDrafts.getState().get('s1')?.pending).toBeUndefined()
+    vi.unstubAllGlobals()
+  })
+
+  it('never sends an uncertain earlier request in place of different new text', async () => {
+    const { sendTurn, PendingConflict } = await import('./send')
+    const fetchSpy = vi.fn(async () => jsonResponse(202, { id: 'r1' }))
+    vi.stubGlobal('fetch', fetchSpy)
+    useDrafts.getState().set('s1', {
+      pending: {
+        turnKey: 'k',
+        turnBody: { expected_version: 1, message: 'FIRST', control: {} as never },
+      },
+    })
+    const err = await sendTurn('s1', {
+      expected_version: 1,
+      message: 'SECOND',
+      control: {} as never,
+    }).catch((e) => e)
+    expect(err).toBeInstanceOf(PendingConflict)
+    expect(err.earlier).toBe('FIRST')
+    expect(fetchSpy).not.toHaveBeenCalled()
+    vi.unstubAllGlobals()
+  })
+
+  it('a summary uses its own key, so it never replays a pending message', async () => {
+    const { sendTurn } = await import('./send')
+    const sent: { key: string | null; body: string }[] = []
+    vi.stubGlobal('fetch', async (req: Request) => {
+      sent.push({ key: req.headers.get('Idempotency-Key'), body: await req.text() })
+      return jsonResponse(202, { id: 'r2' })
+    })
+    useDrafts.getState().set('s1', {
+      pending: {
+        turnKey: 'k',
+        turnBody: { expected_version: 1, message: 'FIRST', control: {} as never },
+      },
+    })
+    await sendTurn(
+      's1',
+      { expected_version: 1, message: 'Summarize', control: {} as never },
+      'summary:s1',
+    )
+    expect(sent).toHaveLength(1)
+    expect(sent[0].key).not.toBe('k')
+    expect(JSON.parse(sent[0].body).message).toBe('Summarize')
+    expect(useDrafts.getState().get('s1')?.pending?.turnKey).toBe('k')
+    vi.unstubAllGlobals()
+  })
+
+  it('a first send whose idea changed after a lost response asks instead of resending', async () => {
+    const { sendNewChat, PendingConflict } = await import('./send')
+    const fetchSpy = vi.fn(async () => jsonResponse(201, { id: 's1', version: 1 }))
+    vi.stubGlobal('fetch', fetchSpy)
+    useDrafts.getState().set('new:unfiled', {
+      pending: { createKey: 'c', createBody: { idea: 'Old idea' }, turnKey: 't' },
+    })
+    await expect(sendNewChat('new:unfiled', { idea: 'New idea' })).rejects.toBeInstanceOf(
+      PendingConflict,
+    )
+    expect(fetchSpy).not.toHaveBeenCalled()
     vi.unstubAllGlobals()
   })
 })
