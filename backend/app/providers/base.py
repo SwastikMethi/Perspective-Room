@@ -18,6 +18,7 @@ class Structured:
     model: str
     response_id: str | None
     usage: Usage = field(default_factory=Usage)
+    request_id: str | None = None  # the provider's request ID, kept for local diagnosis
 
 
 @dataclass
@@ -26,6 +27,7 @@ class Refused:
     model: str
     response_id: str | None
     usage: Usage = field(default_factory=Usage)
+    request_id: str | None = None  # the provider's request ID, kept for local diagnosis
 
 
 @dataclass
@@ -34,6 +36,7 @@ class Incomplete:
     model: str
     response_id: str | None
     usage: Usage = field(default_factory=Usage)
+    request_id: str | None = None  # the provider's request ID, kept for local diagnosis
 
 
 GenerationResult = Structured | Refused | Incomplete
@@ -56,6 +59,7 @@ class ResearchRaw:
     model: str
     usage: Usage = field(default_factory=Usage)
     tool_calls: int | None = None
+    request_id: str | None = None
 
 
 class ProviderFailure(Exception):

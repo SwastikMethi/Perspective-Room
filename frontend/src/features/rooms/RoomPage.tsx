@@ -232,6 +232,7 @@ export function RoomPage() {
   const endRef = useRef<HTMLDivElement>(null)
   const count = useRef(0)
   const pendingScroll = useRef<string | null>(null)
+  const selectionChain = useRef(Promise.resolve())
 
   // Scroll to a deep-linked message once it is actually rendered.
   useEffect(() => {
@@ -321,7 +322,9 @@ export function RoomPage() {
     setError(null)
     setStale(false)
     try {
-      const body = { expected_version: s.version, message: text.trim(), control }
+      await selectionChain.current // a roster change just made must land first (no self-409)
+      const version = qc.getQueryData<Schemas['Session']>(keys.session(id))?.version ?? s.version
+      const body = { expected_version: version, message: text.trim(), control }
       let r: Schemas['Run']
       try {
         r = await sendTurn(id, body, draftKey)
@@ -398,7 +401,6 @@ export function RoomPage() {
   }
 
   // Roster changes run one at a time with the latest version, so quick toggles never race (M1).
-  const selectionChain = useRef(Promise.resolve())
   const changeSelection = (ids: string[]) => {
     const current = qc.getQueryData<Schemas['Session']>(keys.session(id))
     if (current)

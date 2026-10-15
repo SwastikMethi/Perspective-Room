@@ -211,3 +211,26 @@ def test_state_bounding_also_trims_assessment_context():
     }
     bounded = bound_state(state, max_tokens=8000)
     assert len(json.dumps(bounded)) / 4 <= 8000
+
+
+def test_probabilities_rounded_by_the_provider_are_accepted():
+    """Live Jev returns 2-decimal probabilities (seen in the live smoke: 0.04+0.67+0.26+0.02 =
+    0.99); each value may be off by ≤0.005, so the sum may be off by ≤0.005 per option."""
+    resp = deepcopy(RESP)
+    keys = list(resp["answers"]["next_speaker"]["probabilities"])
+    rounded = [0.04, 0.67, 0.26, 0.02, 0.0, 0.0, 0.0, 0.0][: len(keys)]
+    rounded[1] += 0.99 - sum(rounded)  # total 0.99 whatever the option count
+    resp["answers"]["next_speaker"]["probabilities"] = dict(zip(keys, rounded, strict=True))
+    resp["answers"]["next_speaker"]["choice"] = keys[1]
+    assert abs(sum(rounded) - 0.99) < 1e-9
+    assert isinstance(validate_answers(REQ["questions"], resp)["next_speaker"], ChoiceAnswer)
+    off = deepcopy(resp)
+    off["answers"]["next_speaker"]["probabilities"][keys[1]] -= 0.2  # sum 0.79: not rounding
+    assert isinstance(validate_answers(REQ["questions"], off)["next_speaker"], Invalid)
+
+
+async def test_jev_answers_carry_the_request_id_header():
+    out = await jev(Rec(body=RESP, headers={"x-typesafe-request-id": "ts_req_1"})).ask(
+        REQ["state"], REQ["questions"]
+    )
+    assert out["_request_id"] == "ts_req_1"

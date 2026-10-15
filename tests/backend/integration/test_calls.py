@@ -234,3 +234,21 @@ async def test_long_retry_after_is_not_cut_short(app, client, db, new_session):
     with pytest.raises(ProviderFailure):
         await call_provider(ctx, purpose="draft", provider="openai", model="m", fn=fn)
     assert len(await rows(db)) == 1  # waiting 60 s inside a turn is not a sane retry
+
+
+async def test_successful_calls_keep_the_provider_request_id(app, client, db, new_session):
+    """doc 09: live provider request IDs are preserved locally for diagnosis (live smoke found
+    them missing on every successful call)."""
+    ctx = await make_ctx(app, client, new_session)
+
+    async def fn():
+        return Structured({"x": 1}, "gpt-6.1-sol", "resp_1", Usage(1, 1), request_id="req_abc")
+
+    async def jev_fn():
+        return {"model": "jev-1.13.0", "answers": {}, "_request_id": "ts_req_9"}
+
+    await call_provider(ctx, purpose="draft", provider="openai", model="m", fn=fn)
+    await call_provider(ctx, purpose="route", provider="jev", model="j", fn=jev_fn)
+    async with db() as s:
+        ids = sorted((await s.scalars(select(ProviderCall.request_id))).all())
+    assert ids == ["req_abc", "ts_req_9"]

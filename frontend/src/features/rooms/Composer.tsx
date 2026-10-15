@@ -23,7 +23,7 @@ export function controlFor(draft: Draft | undefined): Control {
 }
 
 const select =
-  'min-h-10 rounded-control border border-border bg-surface px-2 text-[14px] text-text disabled:opacity-60'
+  'min-h-10 w-full min-w-0 rounded-control border border-border bg-surface px-1.5 text-[13px] text-text disabled:opacity-60 sm:w-auto sm:px-2 sm:text-[14px]'
 
 export interface ComposerProps {
   draftKey: string
@@ -289,7 +289,7 @@ export function Composer(props: ComposerProps) {
                 ? `mention-${draftKey}-${matches[mention.index % matches.length]}`
                 : undefined
             }
-            aria-expanded={mention ? matches.length > 0 : undefined}
+            aria-expanded={standard ? undefined : Boolean(mention && matches.length > 0)}
             aria-controls={mention ? `mentions-${draftKey}` : undefined}
             onChange={(e) => onChange(e.target.value, e.target.selectionStart)}
             onKeyDown={onKeyDown}
@@ -333,7 +333,7 @@ export function Composer(props: ComposerProps) {
           )}
         </div>
         {!standard && (
-          <label className="flex items-center">
+          <label className="flex min-w-0 flex-[2] items-center sm:flex-none">
             <span className="sr-only">Who answers</span>
             <select
               className={select}
@@ -359,7 +359,7 @@ export function Composer(props: ComposerProps) {
             </select>
           </label>
         )}
-        <label className="flex items-center">
+        <label className="flex min-w-0 flex-[3] items-center sm:flex-none">
           <span className="sr-only">Research</span>
           <select
             className={select}

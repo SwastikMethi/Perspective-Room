@@ -134,7 +134,8 @@ def _probabilities(raw: Any, keys: set[str]) -> dict[str, float] | str:
         return "probabilities do not match the options"
     if not all(_finite01(v) for v in raw.values()):
         return "probabilities must be finite numbers in [0, 1]"
-    if abs(sum(raw.values()) - 1.0) > 1e-6:
+    # Jev rounds each probability to 2 decimals (live smoke): allow ±0.005 per option, no more.
+    if abs(sum(raw.values()) - 1.0) > 0.005 * len(raw) + 1e-9:
         return "probabilities sum is not 1"
     return {k: float(v) for k, v in raw.items()}
 

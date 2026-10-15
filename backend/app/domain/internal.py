@@ -38,4 +38,6 @@ WARNING_TEXT: dict[str, str] = {
     "usage_unknown": "Some provider usage is unknown.",
     "demo_mode": "Demo mode — deterministic fixtures, no external calls.",
     "budget_cap_unenforced": "The session cost cap cannot be enforced (no rate card).",
+    "intake_unavailable": "The turn was read without the usual intake step.",
+    "attempts_exhausted": "The turn reached its limit of provider calls.",
 }

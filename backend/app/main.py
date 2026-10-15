@@ -9,6 +9,7 @@ from fastapi import FastAPI
 
 from app.api import conversation, evaluation, events, ideas, sessions, sources, system, workspace
 from app.api.errors import RequestIdMiddleware, install_error_handlers
+from app.api.security import SecurityMiddleware
 from app.api.spa import mount_spa
 from app.catalog import Catalog, load_catalog
 from app.persistence.db import make_engine, make_sessionmaker, ping
@@ -32,7 +33,7 @@ def providers_for(env: AppEnv, catalog: Catalog) -> dict[str, Any]:
             "coordinator": DemoCoordinator(),
         }
     generation: Any = (
-        OpenAIGeneration(env.OPENAI_API_KEY.get_secret_value())
+        OpenAIGeneration(env.OPENAI_API_KEY.get_secret_value(), base_url=env.OPENAI_BASE_URL)
         if env.OPENAI_API_KEY
         else NotWired()
     )
@@ -121,6 +122,7 @@ def create_app(env: AppEnv | None = None, catalog: Catalog | None = None) -> Fas
         runner.cancel_signal,
     )
     install_error_handlers(app)
+    app.add_middleware(SecurityMiddleware, env=env)
     app.add_middleware(RequestIdMiddleware)  # outermost: every response carries an ID
     app.include_router(system.router)
     app.include_router(sessions.router)

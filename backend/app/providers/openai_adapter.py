@@ -51,9 +51,15 @@ def _retry_after(headers: httpx2.Headers) -> str | None:
 class OpenAIGeneration:
     name = "openai"
 
-    def __init__(self, api_key: str, http_client: httpx2.AsyncClient | None = None) -> None:
+    def __init__(
+        self,
+        api_key: str,
+        http_client: httpx2.AsyncClient | None = None,
+        base_url: str | None = None,
+    ) -> None:
         self.client = AsyncOpenAI(
             api_key=api_key,
+            base_url=base_url,  # None → the SDK default; set for regional (data residency) hosts
             max_retries=0,
             timeout=httpx2.Timeout(300.0, connect=10.0),  # per-purpose deadlines are enforced above
             http_client=http_client,
@@ -113,27 +119,28 @@ class OpenAIGeneration:
             kwargs["reasoning"] = {"effort": reasoning_effort}
         resp = await self._create(**kwargs)
         usage, rid, resp_model = _usage(resp), resp.id, resp.model
+        req = getattr(resp, "_request_id", None)
         texts: list[str] = []
         for item in resp.output or []:
             if getattr(item, "type", None) != "message":
                 continue  # reasoning and other items are not the answer
             for part in item.content or []:
                 if part.type == "refusal":
-                    return Refused(part.refusal, resp_model, rid, usage)
+                    return Refused(part.refusal, resp_model, rid, usage, req)
                 if part.type == "output_text":
                     texts.append(part.text)
         if resp.status == "incomplete":
             reason = getattr(resp.incomplete_details, "reason", None) or "unknown"
-            return Incomplete(reason, resp_model, rid, usage)
+            return Incomplete(reason, resp_model, rid, usage, req)
         if resp.status != "completed" or not texts:
             raise ProviderFailure("provider_error", f"OpenAI returned status {resp.status}.")
         try:
             data = json.loads("".join(texts))
         except ValueError:
-            return Incomplete("invalid_json", resp_model, rid, usage)
+            return Incomplete("invalid_json", resp_model, rid, usage, req)
         if not isinstance(data, dict):
-            return Incomplete("invalid_json", resp_model, rid, usage)
-        return Structured(data, resp_model, rid, usage)
+            return Incomplete("invalid_json", resp_model, rid, usage, req)
+        return Structured(data, resp_model, rid, usage, req)
 
     async def web_research(
         self,
@@ -189,7 +196,14 @@ class OpenAIGeneration:
                     text_parts.append(part.text)
                     offset += len(part.text)
         return ResearchRaw(
-            "".join(text_parts), citations, sources, resp.id, resp.model, _usage(resp), tool_calls
+            "".join(text_parts),
+            citations,
+            sources,
+            resp.id,
+            resp.model,
+            _usage(resp),
+            tool_calls,
+            getattr(resp, "_request_id", None),
         )
 
     async def check(self, model: str) -> None:

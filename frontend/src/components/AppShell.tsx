@@ -218,8 +218,11 @@ export function AppShell() {
                   <Menu aria-hidden size={22} />
                 </button>
               )}
-              <span className="min-w-0 flex-1 truncate text-[19px] font-semibold sm:text-[22px]">
-                Perspective Room
+              <span className="flex min-w-0 flex-1 items-center gap-2 truncate text-[19px] font-semibold sm:text-[22px]">
+                <span className="sm:hidden" aria-hidden>
+                  <Logo size={26} />
+                </span>
+                <span className="max-sm:sr-only">Perspective Room</span>
               </span>
               <div ref={setActionsEl} className="flex items-center gap-3" />
               <ThemeSwitch />

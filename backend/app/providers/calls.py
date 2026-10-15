@@ -308,5 +308,7 @@ async def call_provider[T](
             model=getattr(result, "model", None)
             or (result.get("model") if isinstance(result, dict) else None),
             response_id=getattr(result, "response_id", None),
+            request_id=getattr(result, "request_id", None)
+            or (result.get("_request_id") if isinstance(result, dict) else None),
         )
         return result

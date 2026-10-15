@@ -168,6 +168,35 @@ def eval_run(args: argparse.Namespace) -> int:
     return 0
 
 
+def smoke_live(args: argparse.Namespace) -> int:
+    """doc 10 small live set (+ optional personality probe). Makes a few paid calls."""
+    from app.smoke import run_smoke
+
+    if (
+        not args.yes
+        and input("This makes a small number of paid provider calls. Type 'smoke' to run: ").strip()
+        != "smoke"
+    ):
+        print("Not started.", file=sys.stderr)
+        return 1
+    code, out = run_smoke(get_env(), args.url, args.out_dir, args.probe)
+    report = json.loads(out.read_text())
+    print(
+        f"provider mode: {report['provider_mode']}; check: "
+        + ", ".join(f"{k} {v['status']}" for k, v in report["provider_check"].items())
+    )
+    for st in report["steps"]:
+        run = st.get("run") or {}
+        print(
+            f"  {st['step']}: {run.get('status', 'error')} "
+            f"{run.get('published_count', '')}/{run.get('requested_count', '')} "
+            f"{run.get('elapsed_s', '')}s warnings={run.get('warning_codes', [])} "
+            f"{st.get('error', '')}"
+        )
+    print(f"report: {out}" + ("" if code == 0 else " — NOT a live success; see the report"))
+    return code
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="python -m app.cli")
     sub = parser.add_subparsers(dest="command", required=True)
@@ -189,6 +218,11 @@ def main(argv: list[str] | None = None) -> int:
     ex.add_argument("batch_id", type=UUID)
     ex.add_argument("--format", choices=["csv", "json"], required=True)
     ex.add_argument("--out", type=Path, required=True)
+    sm = sub.add_parser("smoke-live", help="doc 10 live smoke via the running app (paid calls)")
+    sm.add_argument("--url", default="http://127.0.0.1:8000")
+    sm.add_argument("--out-dir", type=Path, default=Path("exports"))
+    sm.add_argument("--probe", action="store_true", help="also run the eight-person probe")
+    sm.add_argument("--yes", action="store_true", help="skip the typed confirmation")
     rm = sub.add_parser("delete-eval", help="Delete a finished batch after typed confirmation")
     rm.add_argument("batch_id", type=UUID)
     args = parser.parse_args(argv)
@@ -202,6 +236,8 @@ def main(argv: list[str] | None = None) -> int:
         return export_eval(args.batch_id, args.format, args.out)
     if args.command == "delete-eval":
         return delete_eval(args.batch_id)
+    if args.command == "smoke-live":
+        return smoke_live(args)
     return 2
 
 

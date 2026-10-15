@@ -46,3 +46,49 @@ def test_generated_models_are_current():
     assert fresh == (ROOT / "backend/app/domain/api.py").read_text(), (
         "app/domain/api.py is stale: run scripts/gen_contracts.sh"
     )
+
+
+def test_compose_publishes_only_loopback_and_never_the_database():
+    import yaml
+
+    services = yaml.safe_load((ROOT / "docker-compose.yml").read_text())["services"]
+    assert services["app"]["ports"] == ["127.0.0.1:${APP_PORT:-8000}:8000"]
+    assert "ports" not in services["db"]
+    for name, svc in services.items():
+        for port in svc.get("ports", []):
+            assert str(port).startswith("127.0.0.1:"), (name, port)
+
+
+def test_built_frontend_contains_no_key_material():
+    import re
+
+    import pytest
+
+    dist = ROOT / "frontend/dist"
+    if not dist.exists():
+        pytest.skip("frontend/dist not built (npm run build)")
+    pattern = re.compile(
+        rb"sk-[A-Za-z0-9_-]{16,}|OPENAI_API_KEY=|TYPESAFE_API_KEY=|Bearer [A-Za-z0-9]"
+    )
+    env = AppEnv()  # the real .env too, once the user has added keys
+    secrets = [env.OPENAI_API_KEY, env.TYPESAFE_API_KEY]
+    env_values = [
+        s.get_secret_value().encode() for s in secrets if s and len(s.get_secret_value()) >= 8
+    ]
+    for f in dist.rglob("*"):
+        if f.is_file() and f.suffix in (".js", ".html", ".css", ".map", ".json"):
+            data = f.read_bytes()
+            assert not pattern.search(data), f
+            assert not any(v in data for v in env_values), f
+
+
+def test_warning_texts_match_between_backend_and_frontend():
+    import re
+
+    from app.domain.internal import WARNING_TEXT
+
+    copy = (ROOT / "frontend/src/features/rooms/copy.ts").read_text()
+    start = copy.index("export const WARNING_TEXT")
+    block = copy[start : copy.index("\n}", start)]
+    frontend = dict(re.findall(r"^\s+(\w+): '([^']*)',", block, re.M))
+    assert frontend == WARNING_TEXT

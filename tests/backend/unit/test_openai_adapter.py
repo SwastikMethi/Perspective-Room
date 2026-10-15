@@ -231,3 +231,37 @@ async def test_connect_error_before_send_is_retryable_and_not_billed():
         await structured(gen)
     assert err.value.code == "transient" and err.value.retryable
     assert err.value.usage_unknown is False
+
+
+async def test_a_configured_api_host_is_used_for_every_call():
+    model = {"id": "gpt-6.1-sol", "object": "model", "created": 0, "owned_by": "openai"}
+    rec = Recorder(200, model)
+    gen = OpenAIGeneration(
+        KEY,
+        http_client=httpx.AsyncClient(transport=httpx.MockTransport(rec)),
+        base_url="https://us.api.openai.com/v1",
+    )
+    await gen.check("gpt-6.1-sol")
+    assert str(rec.requests[0].url) == "https://us.api.openai.com/v1/models/gpt-6.1-sol"
+
+
+def test_the_api_host_setting_is_optional_and_wired(monkeypatch):
+    from app.main import providers_for
+    from app.settings import AppEnv
+
+    env = AppEnv(
+        _env_file=None,
+        OPENAI_API_KEY="sk-test-x",
+        TYPESAFE_API_KEY="ts-x",
+        OPENAI_BASE_URL="https://us.api.openai.com/v1",
+    )
+    gen = providers_for(env, None)["generation"]  # type: ignore[arg-type]
+    assert str(gen.client.base_url) == "https://us.api.openai.com/v1/"
+    assert AppEnv(_env_file=None).OPENAI_BASE_URL is None
+
+
+async def test_results_carry_the_openai_request_id():
+    body = response([message(text_part(json.dumps({"x": 1})))])
+    rec = Recorder(200, body, headers={"x-request-id": "req_123"})
+    result = await structured(adapter(rec))
+    assert result.request_id == "req_123"

@@ -67,6 +67,9 @@ class JevCoordinator:
             raise ProviderFailure("provider_error", "Jev returned invalid JSON.") from e
         if not isinstance(body, dict):
             raise ProviderFailure("provider_error", "Jev returned an unexpected body.")
+        body["_request_id"] = r.headers.get("x-request-id") or r.headers.get(
+            "x-typesafe-request-id"
+        )
         return body
 
     async def check(self) -> None:

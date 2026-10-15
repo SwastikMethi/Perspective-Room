@@ -86,7 +86,12 @@ function Citations({ ids, numbers }: { ids: string[]; numbers: Map<string, numbe
   )
 }
 
-function FeedbackButton({ message }: { message: Message }) {
+/** Compact cards show icon buttons (the name stays for assistive tech and as a tooltip). */
+function ActionLabel({ text, compact }: { text: string; compact: boolean }) {
+  return <span className={compact ? 'sr-only' : ''}>{text}</span>
+}
+
+function FeedbackButton({ message, compact }: { message: Message; compact: boolean }) {
   const { actions } = useRoom()
   const [labels, setLabels] = useState<Schemas['FeedbackCreate']['labels']>([])
   const [note, setNote] = useState('')
@@ -98,8 +103,8 @@ function FeedbackButton({ message }: { message: Message }) {
   ] as const
   return (
     <Popover.Root>
-      <Popover.Trigger className={iconButton}>
-        <ThumbsUp aria-hidden size={15} /> Feedback
+      <Popover.Trigger className={iconButton} title={compact ? 'Feedback' : undefined}>
+        <ThumbsUp aria-hidden size={15} /> <ActionLabel text="Feedback" compact={compact} />
       </Popover.Trigger>
       <Popover.Portal>
         <Popover.Content
@@ -281,9 +286,10 @@ function ContributionCard({
         <button
           type="button"
           className={iconButton}
+          title={expanded ? undefined : 'Copy'}
           onClick={() => copyToClipboard(copyText(message, speaker, sourcesForCopy))}
         >
-          <Copy aria-hidden size={15} /> Copy
+          <Copy aria-hidden size={15} /> <ActionLabel text="Copy" compact={!expanded} />
         </button>
         {!archived && (
           <>
@@ -291,27 +297,31 @@ function ContributionCard({
               type="button"
               className={iconButton}
               disabled={room.running}
+              title={expanded ? undefined : 'Reply'}
               onClick={() => void room.actions.setIntent('reply', message)}
             >
-              <Reply aria-hidden size={15} /> Reply
+              <Reply aria-hidden size={15} /> <ActionLabel text="Reply" compact={!expanded} />
             </button>
             <button
               type="button"
               className={iconButton}
               disabled={room.running}
+              title={expanded ? undefined : 'Ask more'}
               onClick={() => void room.actions.setIntent('ask', message)}
             >
-              <MessageCircleQuestion aria-hidden size={15} /> Ask more
+              <MessageCircleQuestion aria-hidden size={15} />{' '}
+              <ActionLabel text="Ask more" compact={!expanded} />
             </button>
             <button
               type="button"
               className={iconButton}
               disabled={room.running}
+              title={expanded ? undefined : 'Challenge'}
               onClick={() => void room.actions.setIntent('challenge', message)}
             >
-              <Swords aria-hidden size={15} /> Challenge
+              <Swords aria-hidden size={15} /> <ActionLabel text="Challenge" compact={!expanded} />
             </button>
-            <FeedbackButton message={message} />
+            <FeedbackButton message={message} compact={!expanded} />
             <DropdownMenu.Root>
               <DropdownMenu.Trigger
                 aria-label={`More actions for ${c.headline}`}

@@ -20,6 +20,8 @@ class AppEnv(BaseSettings):
     OPENAI_RESEARCH_MODEL: str = "gpt-6.1-sol"
     JEV_MODEL: str = "jev-1.13.0"
     OPENAI_REASONING_EFFORT: str | None = None
+    # Only for keys bound to a regional host (OpenAI data residency), e.g. https://us.api.openai.com/v1
+    OPENAI_BASE_URL: str | None = None
     DATABASE_URL: str = (
         "postgresql+asyncpg://perspective:local_development_only@db:5432/perspective"
     )
