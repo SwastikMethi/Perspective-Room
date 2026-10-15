@@ -1,5 +1,5 @@
 import { ArrowUp, Folder, X } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { ApiError, type Schemas } from '../../api/client'
 import { useFolders, usePersonas, useSettings } from '../../api/queries'
@@ -41,7 +41,6 @@ export function NewChatPage() {
   const [error, setError] = useState<{ text: string; folderGone?: boolean } | null>(null)
   const [mode, setMode] = useState<Mode>('jev_guided')
   const [selected, setSelected] = useState<string[] | null>(null)
-  const resumed = useRef(false)
   const box = useRef<HTMLTextAreaElement>(null)
 
   const defaults = personas.data?.default_selection ?? ['mentor', 'skeptic', 'explorer']
@@ -53,7 +52,7 @@ export function NewChatPage() {
   const folderMissing = Boolean(folderId && folders.isSuccess && !folder)
   const notReady = settings.data?.provider_mode === 'live' && !settings.data.openai_configured
 
-  const send = async (idea: string) => {
+  const send = async (idea: string, resendEarlier = false) => {
     if (!idea.trim() || busy || notReady) return
     setBusy(true)
     setError(null)
@@ -71,9 +70,11 @@ export function NewChatPage() {
         selected_persona_ids: ROSTER.filter((p) => chosen.includes(p)) as PersonaId[],
         ...(folderId ? { folder_id: folderId } : {}),
       }
+      const earlierBody = useDrafts.getState().get(key)?.pending?.createBody
       let id: string
       try {
-        id = await sendNewChat(key, body, control)
+        // "Send it now" resends the stored request with its original keys (never duplicated).
+        id = await sendNewChat(key, resendEarlier && earlierBody ? earlierBody : body, control)
       } catch (e) {
         if (!(e instanceof PendingConflict)) throw e
         const choice = await resolvePending(e)
@@ -103,13 +104,9 @@ export function NewChatPage() {
     }
   }
 
-  // A refresh during the first Send resumes it with the same keys and bodies.
-  useEffect(() => {
-    if (!resumed.current && draft?.pending?.createBody) {
-      resumed.current = true
-      void send(draft.pending.createBody.idea)
-    }
-  })
+  // An interrupted first Send is never resumed by opening the page (no paid work on route
+  // mount): the user chooses to resend it (same keys, so it is never duplicated) or discard it.
+  const interrupted = !busy && draft?.pending?.createBody ? draft.pending.createBody.idea : null
 
   const moveToNoFolder = () => {
     const text = draft?.text ?? ''
@@ -144,6 +141,33 @@ export function NewChatPage() {
             <X aria-hidden size={14} />
           </button>
         </p>
+      )}
+      {interrupted && (
+        <div
+          role="status"
+          className="mt-4 rounded-card border border-border bg-surface-subtle p-3 text-[15px]"
+        >
+          <p>
+            Your first message may not have been sent: “
+            {interrupted.length > 80 ? `${interrupted.slice(0, 80)}…` : interrupted}”.
+          </p>
+          <div className="mt-2 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => void send(interrupted, true)}
+              className="min-h-10 rounded-control bg-accent px-3 font-medium text-on-accent"
+            >
+              Send it now
+            </button>
+            <button
+              type="button"
+              onClick={() => discardPending(key)}
+              className="min-h-10 rounded-control border border-border px-3"
+            >
+              Discard the earlier send
+            </button>
+          </div>
+        </div>
       )}
       <form
         className="mt-6"

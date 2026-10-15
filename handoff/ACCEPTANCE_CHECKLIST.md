@@ -40,7 +40,7 @@ Completed 2026-10-15. Evidence references point to [IMPLEMENTATION_REPORT.md](..
 - [x] Dark is default; dark/light switch persists and themes every screen/menu/dialog. — pre-paint theme script; `ui.test.ts`; e2e journey; axe in both themes including the drawer.
 - [x] Sidebar expands/collapses; mobile drawer, search, chat menus and open folder children are keyboard accessible. — e2e journey (both states, Escape returns focus), `focus.test.tsx`, keyboard spec.
 - [x] All-eight panel replies, long responses with sources and multi-turn history reflow without clipping; details stay closed by default. — overflow spec at four sizes; `eight-selected-eight-replies.png`, `long-cited-reply.png`, `long-multi-turn-chat.png`.
-- [x] Desktop and mobile walkthroughs pass without overflow or unreachable controls. — 33 browser tests at 1440×900, 1920×1080, 1024×768, 390×844 (report §2).
+- [x] Desktop and mobile walkthroughs pass without overflow or unreachable controls. — 38 browser tests at 1440×900, 1920×1080, 1024×768, 390×844 (report §2).
 - [x] Loading, empty, partial, error, cancellation, reconnect, and missing-key states are usable. — failures spec; empty states in workspace spec; missing-key screen checked on the fresh clone.
 - [x] Keyboard navigation, focus, reduced motion, readable contrast, and zoom are checked. — `frontend/e2e/a11y.spec.ts` (axe WCAG 2.1 AA, keyboard-only room, reduced motion, 200 % zoom).
 - [x] No fake benchmark metrics, decorative reasoning traces, or unfinished required controls appear. — Lab shows only measured values (`ResultsView.test.tsx`: missing means stay empty); no placeholder routes remain.

@@ -95,3 +95,12 @@ test('warning codes map to plain sentences; unknown codes stay visible', () => {
   expect(warningText('coordination_fallback')).toBe('Fixed order used for this turn.')
   expect(warningText('something_new')).toBe('something_new')
 })
+
+test('replies added by a later retry are identified (they publish after their round-mates)', async () => {
+  const { retriedIds } = await import('./grouping')
+  const a = { ...reply('a', 2, 'mentor'), run_id: 'run1' }
+  const b = { ...reply('b', 3, 'explorer'), run_id: 'run1' }
+  const c = { ...reply('c', 4, 'skeptic'), run_id: 'run2' }
+  expect([...retriedIds([a, b, c])]).toEqual(['c'])
+  expect([...retriedIds([a, b])]).toEqual([])
+})

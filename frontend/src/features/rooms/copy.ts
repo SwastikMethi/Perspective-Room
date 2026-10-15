@@ -5,6 +5,7 @@ import type { Schemas } from '../../api/client'
 export const WARNING_TEXT: Record<string, string> = {
   coordination_fallback: 'Fixed order used for this turn.',
   coordination_unavailable: 'Jev was unavailable; fixed order used for this turn.',
+  coordination_low_confidence: 'Jev was not confident; fixed order used for this turn.',
   audit_unavailable: 'Quality checks were unavailable for some replies.',
   quality_warning: 'A reply was published with a quality warning.',
   repair_used: 'One reply was revised once after a quality check.',

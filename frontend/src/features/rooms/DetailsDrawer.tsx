@@ -601,7 +601,7 @@ export function DetailsDrawer({
                 </Tabs.Trigger>
               ))}
             </Tabs.List>
-            <div className="min-h-0 flex-1 overflow-y-auto p-4">
+            <div className="min-h-0 flex-1 overflow-y-auto p-4 [overflow-wrap:anywhere]">
               <Tabs.Content value="brief">
                 <BriefTab session={session} summary={summary} running={running} />
               </Tabs.Content>

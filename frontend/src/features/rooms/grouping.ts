@@ -35,3 +35,10 @@ export function numberSources(replies: Message[]): Map<string, number> {
     for (const id of citedIds(m)) if (!numbers.has(id)) numbers.set(id, numbers.size + 1)
   return numbers
 }
+
+/** Replies published by a later Retry of the round (a different run than the round's first
+ * replies). They appear after their round-mates; the card says so instead of reordering. */
+export function retriedIds(replies: Message[]): Set<string> {
+  const first = replies.find((m) => m.run_id)?.run_id
+  return new Set(replies.filter((m) => m.run_id && m.run_id !== first).map((m) => m.id))
+}

@@ -36,6 +36,7 @@ from app.settings import AppEnv
 MODE_ORDER = ("standard", "fixed_panel", "jev_guided")
 REVEALING_WARNINGS = {
     "coordination_fallback",
+    "coordination_low_confidence",
     "coordination_unavailable",
     "audit_unavailable",
     "quality_warning",
@@ -567,6 +568,7 @@ async def results(db: AsyncSession, batch_id: UUID, *, reveal: bool) -> api.Eval
     def per_mode(test: Any) -> str:
         return ", ".join(f"{m}: {sum(test(flags[t.id]) for t in by_mode[m])}" for m in modes)
 
+    low = sum("coordination_low_confidence" in flags[t.id] for t in trials)
     latest: dict[tuple[UUID, str], EvaluationRating] = {}
     for r in ratings:
         latest[(r.trial_id, r.rater_alias)] = r
@@ -576,7 +578,8 @@ async def results(db: AsyncSession, batch_id: UUID, *, reveal: bool) -> api.Eval
         "Means and comparisons use rated trials only; unrated or incomplete trials are left "
         "out (never scored as zero) and a case counts only where both conditions are rated.",
         f"Fallbacks: {sum(bool(flags[t.id] & FALLBACK_CODES) for t in trials)} trials "
-        f"({per_mode(lambda f: bool(f & FALLBACK_CODES))}); degraded trials: "
+        f"({per_mode(lambda f: bool(f & FALLBACK_CODES))}); low-confidence fixed order: "
+        f"{low} trial{'' if low == 1 else 's'}; degraded trials: "
         f"{sum(t.degraded for t in trials)}.",
         f"Repairs used: {sum('repair_used' in flags[t.id] for t in trials)} trials "
         f"({per_mode(lambda f: 'repair_used' in f)}); quality warnings: "
@@ -622,7 +625,8 @@ def csv_cell(value: Any) -> str:
 
 CSV_COLUMNS = [
     "evaluation_id", "provider_mode", "evidence_policy", "cases_version", "case_id", "replicate",
-    "mode", "blind_label", "trial_status", "degraded", "fallback", "repair_used",
+    "mode", "blind_label", "trial_status", "degraded", "fallback", "low_confidence_fallback",
+    "repair_used",
     "quality_warning", "evidence_hash", "elapsed_ms", "input_tokens", "output_tokens",
     "usage_incomplete", "provider_calls", "output_words", "rating_id", "rater_alias",
     "useful_breadth", "usefulness", "consistency", "redundancy", "distinct_directions", "labels",
@@ -670,7 +674,8 @@ async def export_batch(
             base: list[Any] = [
                 b.id, b.provider_mode, b.config["evidence_policy"], b.snapshot.get("cases_version"),
                 t.case_id, t.replicate, t.mode, t.blind_label, t.status, t.degraded,
-                bool(flags[t.id] & FALLBACK_CODES), "repair_used" in flags[t.id],
+                bool(flags[t.id] & FALLBACK_CODES), "coordination_low_confidence" in flags[t.id],
+                "repair_used" in flags[t.id],
                 "quality_warning" in flags[t.id], t.evidence_hash, t.elapsed_ms,
                 usage.get("input_tokens"), usage.get("output_tokens"),
                 bool(usage.get("usage_incomplete")), extra["calls"], extra["words"],

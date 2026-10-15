@@ -1,5 +1,6 @@
 """Fork, edit-and-branch, regenerate (T17, T32, T33) and retry missing work."""
 
+import asyncio
 from uuid import uuid4
 
 from conftest import idem, turn_body
@@ -471,3 +472,43 @@ async def test_regenerate_refuses_a_changed_research_model(running_app, client, 
     running_app.state.env = make_test_env(OPENAI_RESEARCH_MODEL="another-model")
     r = await fork(client, s["id"], before_message_id=str(users[1].id), purpose="regenerate")
     assert r.status_code == 409 and r.json()["code"] == "model_unavailable"
+
+
+class SlowMemory:
+    """Demo generation whose memory call is slow, so Stop can land after every reply published."""
+
+    def __init__(self, inner):
+        self.inner, self.name = inner, inner.name
+
+    async def structured(self, **kw):
+        if kw["purpose"] == "memory":
+            await asyncio.sleep(2)
+        return await self.inner.structured(**kw)
+
+    async def web_research(self, **kw):
+        return await self.inner.web_research(**kw)
+
+
+async def test_stop_during_memory_after_every_reply_leaves_nothing_to_retry(
+    running_app, client, db, new_session
+):
+    use(running_app, ScriptedJev())
+    running_app.state.deps.generation = SlowMemory(running_app.state.deps.generation)
+    s = await new_session()
+    version = (await client.get(f"/api/v1/sessions/{s['id']}")).json()["version"]
+    run = (
+        await client.post(
+            f"/api/v1/sessions/{s['id']}/turns", json=turn_body(version, "Go"), headers=idem()
+        )
+    ).json()
+    async with asyncio.timeout(15):
+        while True:
+            async with db() as sess:
+                if (await sess.get(Run, run["id"])).stage == "memory":
+                    break
+            await asyncio.sleep(0.05)
+    await client.post(f"/api/v1/runs/{run['id']}/cancel")
+    final = await wait_done(db, run["id"])
+    assert final.status == "cancelled" and final.published_count == final.requested_count == 3
+    r = await retry(client, final.id, s["id"])
+    assert r.status_code == 409 and r.json()["code"] == "retry_not_allowed"

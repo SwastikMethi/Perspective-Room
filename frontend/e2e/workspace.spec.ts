@@ -119,3 +119,40 @@ test('archive makes a chat read-only until restored', async ({ page }) => {
   await page.getByRole('button', { name: 'Restore' }).click()
   await expect(page.getByLabel('Message', { exact: true })).toBeVisible()
 })
+
+test('archiving or deleting a chat that is still replying offers Stop first (doc 14)', async ({
+  page,
+}) => {
+  const start = async (word: string) => {
+    const s = await call(page, 'POST', '/api/v1/sessions', { idea: unique(word) })
+    await call(page, 'POST', `/api/v1/sessions/${s.id}/turns`, {
+      expected_version: s.version,
+      message: '[[demo:delay=4000]] A slow reply',
+      control: control(),
+    })
+    return s as { id: string; title: string }
+  }
+  const a = await start('Stop then archive ')
+  await page.goto(`/rooms/${a.id}`)
+  await page.getByRole('button', { name: 'Chat options' }).click()
+  await page.getByRole('menuitem', { name: 'Organize…' }).click()
+  await page.getByRole('menuitem', { name: /^Archive/ }).click()
+  await page.getByRole('button', { name: 'Stop and archive' }).click()
+  await expect(page.getByRole('status').filter({ hasText: /This chat is archived/ })).toBeVisible({
+    timeout: 20_000,
+  })
+  const archived = await call(page, 'GET', `/api/v1/sessions/${a.id}`)
+  expect(archived.is_archived).toBe(true)
+  expect(archived.active_run_id).toBeNull()
+
+  const b = await start('Stop then delete ')
+  await page.goto(`/rooms/${b.id}`)
+  await page.getByRole('button', { name: 'Chat options' }).click()
+  await page.getByRole('menuitem', { name: 'Organize…' }).click()
+  await page.getByRole('menuitem', { name: 'Delete…' }).click()
+  await expect(page.getByText(/The running reply is stopped first/)).toBeVisible()
+  await page.getByRole('button', { name: 'Delete chat' }).click()
+  await expect(page).toHaveURL(/\/$/, { timeout: 20_000 })
+  const gone = await page.request.get(`/api/v1/sessions/${b.id}`)
+  expect(gone.status()).toBe(404)
+})

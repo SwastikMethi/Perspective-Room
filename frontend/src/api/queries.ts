@@ -133,15 +133,27 @@ export function useFolders() {
   })
 }
 
+/** Every saved idea of a chat (all pages), so bookmark states and references are complete. */
 export function useIdeas(sessionId: string) {
   return useQuery({
     queryKey: keys.ideas(sessionId),
-    queryFn: () =>
-      unwrap(
-        api.GET('/api/v1/sessions/{session_id}/idea-cards', {
-          params: { path: { session_id: sessionId } },
-        }),
-      ),
+    queryFn: async (): Promise<Schemas['IdeaCardList']> => {
+      const items: Schemas['IdeaCard'][] = []
+      let cursor: string | null = null
+      do {
+        const page: Schemas['IdeaCardList'] = await unwrap(
+          api.GET('/api/v1/sessions/{session_id}/idea-cards', {
+            params: {
+              path: { session_id: sessionId },
+              query: { limit: 100, ...(cursor ? { cursor } : {}) },
+            },
+          }),
+        )
+        items.push(...page.items)
+        cursor = page.next_cursor
+      } while (cursor)
+      return { items, next_cursor: null }
+    },
   })
 }
 

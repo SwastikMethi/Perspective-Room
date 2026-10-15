@@ -33,6 +33,7 @@ import { groupTurns } from './grouping'
 import { useRoomActions } from './roomActions'
 import { STAGE_TEXT, useRoomUi } from './roomUi'
 import { resolvePending } from './pending'
+import { retryOffer } from './runStatus'
 import { discardPending, PendingConflict, sendTurn } from './send'
 import { RoomContext, TurnGroup } from './TurnGroup'
 
@@ -481,8 +482,9 @@ export function RoomPage() {
       : null
   const folderName = s.folder_id ? folders.data?.find((f) => f.id === s.folder_id)?.name : null
   const lr = latestRun.data
-  const canRetry =
-    !running && !s.is_archived && lr && RETRYABLE.includes(lr.status) && lr.id === lastUser?.run_id
+  const offer =
+    !running && lr && lr.id === lastUser?.run_id ? retryOffer(lr) : { retry: false, error: null }
+  const canRetry = offer.retry && !s.is_archived
   const notes = (lr?.warning_codes ?? []).filter((w) => w !== 'demo_mode')
   const summary = [...items].reverse().find((m) => m.summary)
   const replyLabel = (mid: string) => {
@@ -648,6 +650,19 @@ export function RoomPage() {
                           <li key={w}>{warningText(w)}</li>
                         ))}
                       </ul>
+                    )}
+                    {offer.error && (
+                      <p role="alert" className="text-[14px] text-danger">
+                        {offer.error}
+                        {'settings' in offer && (
+                          <>
+                            {' '}
+                            <Link to="/settings" className="underline">
+                              Check the connection in Settings
+                            </Link>
+                          </>
+                        )}
+                      </p>
                     )}
                     {canRetry && (
                       <button

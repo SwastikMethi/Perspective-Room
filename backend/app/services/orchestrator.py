@@ -39,6 +39,7 @@ from app.services.jev_questions import (
 )
 from app.services.policy import (
     RETURN_USER,
+    Route,
     decide_research,
     decide_route,
     eligible,
@@ -448,6 +449,12 @@ class Turn:
         finally:
             slots.release()
 
+    def note_low_confidence(self, route: Route) -> None:
+        """A valid but unsure Jev answer means the fixed fallback (doc 05 step 6): disclosed as a
+        note, not as degradation, and counted by the Lab."""
+        if "low_confidence" in (route.fallback_reason, route.move_fallback):
+            self.ctx.warn("coordination_low_confidence")
+
     def coordination_issue(self, code: str) -> None:
         self.degraded = True
         self.ctx.warn(code)
@@ -566,7 +573,8 @@ class Turn:
             tpl="intake",
         )
         if not isinstance(result, Structured) or validate_intake(result.data):
-            self.ctx.warn("intake_unavailable")
+            if self.fatal is None:  # a fatal error speaks for itself; no misleading second note
+                self.ctx.warn("intake_unavailable")
             return
         self.intake = normalize_intake(result.data)
         await update_run(self.ctx, intake=self.intake)
@@ -941,6 +949,7 @@ class Turn:
             target=target,
             move_override=override,
         )
+        self.note_low_confidence(route)
         await self.trace(
             trace, [target], {"speaker": target, "move": route.move}, route.move_fallback
         )
@@ -1042,6 +1051,7 @@ class Turn:
                 self.selected,
                 move_override=override,
             )
+            self.note_low_confidence(route)
             await self.trace(
                 trace,
                 candidates,

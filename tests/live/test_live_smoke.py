@@ -1,8 +1,9 @@
 """Live smoke (doc 10): only with real keys and RUN_LIVE=1, against the running app.
 
-    RUN_LIVE=1 docker compose exec app python -m app.cli smoke-live --yes --probe
+    docker compose exec app python -m app.cli smoke-live --probe
 
-is the documented way; this wrapper exists so `pytest tests/live` documents the same check."""
+is the documented way; this wrapper runs the same check from backend/ with
+`RUN_LIVE=1 uv run pytest -c pyproject.toml ../tests/live`."""
 
 import os
 

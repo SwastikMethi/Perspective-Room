@@ -265,3 +265,16 @@ async def test_results_carry_the_openai_request_id():
     rec = Recorder(200, body, headers={"x-request-id": "req_123"})
     result = await structured(adapter(rec))
     assert result.request_id == "req_123"
+
+
+def test_an_empty_api_host_setting_means_the_default_host(monkeypatch):
+    """The shipped .env.example has `OPENAI_BASE_URL=` (empty) and Compose exports it into the
+    container environment, where the SDK would read it — an empty value must mean the default."""
+    from app.main import providers_for
+    from app.settings import AppEnv
+
+    monkeypatch.setenv("OPENAI_BASE_URL", "")
+    env = AppEnv(_env_file=None, OPENAI_API_KEY="sk-test-x", TYPESAFE_API_KEY="ts-x")
+    assert env.OPENAI_BASE_URL is None
+    gen = providers_for(env, None)["generation"]  # type: ignore[arg-type]
+    assert str(gen.client.base_url) == "https://api.openai.com/v1/"

@@ -37,6 +37,7 @@ class AppEnv(BaseSettings):
         "OPENAI_API_KEY",
         "TYPESAFE_API_KEY",
         "OPENAI_REASONING_EFFORT",
+        "OPENAI_BASE_URL",
         "MAX_SESSION_USD",
         mode="before",
     )

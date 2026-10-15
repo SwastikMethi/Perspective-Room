@@ -8,7 +8,7 @@ import { RoomRoute } from './features/rooms/RoomPage'
 import { SettingsPage } from './features/settings/SettingsPage'
 import { ChatsPage } from './features/workspace/ChatsPage'
 
-// ponytail: screens land feature by feature (Tasks 11, 22–26); every route already resolves.
+// Unknown paths render a plain not-found screen inside the shell.
 function Screen({ title }: { title: string }) {
   return (
     <section className="mx-auto max-w-[var(--layout-workspace-max)] px-6 py-8 lg:px-12">

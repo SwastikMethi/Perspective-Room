@@ -20,7 +20,7 @@ import { PersonaAvatar } from '../../components/PersonaAvatar'
 import { PERSONA_UI, shortLabel } from '../../lib/personas'
 import { MenuItem, menuContent } from '../workspace/ChatRow'
 import { copyText, SECTION_LABELS, warningText } from './copy'
-import { columnsFor, numberSources, type TurnGroupData } from './grouping'
+import { columnsFor, numberSources, retriedIds, type TurnGroupData } from './grouping'
 import type { RoomActions } from './roomActions'
 import { useRoomUi } from './roomUi'
 
@@ -171,11 +171,13 @@ function ContributionCard({
   user,
   numbers,
   expanded,
+  retried = false,
 }: {
   message: Message
   user: Message | null
   numbers: Map<string, number>
   expanded: boolean
+  retried?: boolean
 }) {
   const room = useRoom()
   const highlight = useRoomUi((s) => s.highlight)
@@ -216,6 +218,11 @@ function ContributionCard({
           <span className="truncate" title={speaker}>
             The {label}
           </span>
+          {retried && (
+            <span className="shrink-0 rounded-control border border-border px-1.5 text-[11px] tracking-normal normal-case">
+              added by retry
+            </span>
+          )}
         </span>
         {!archived && (
           <button
@@ -371,7 +378,7 @@ function SummaryCard({ message, numbers }: { message: Message; numbers: Map<stri
       <h3 className="text-[13px] font-medium tracking-[0.12em] text-muted uppercase">Summary</h3>
       <div className="mt-3 grid gap-4 md:grid-cols-2">
         {message.summary!.sections.map((s) => (
-          <section key={s.kind}>
+          <section key={s.kind} className="min-w-0">
             <h4 className="font-semibold">{SECTION_LABELS[s.kind] ?? s.kind}</h4>
             <ul className="mt-1 list-disc space-y-1 pl-5 text-[15px]">
               {s.items.map((i, n) => (
@@ -496,12 +503,16 @@ export function TurnGroup({
   const cards = group.replies.filter((m) => m.contribution)
   const others = group.replies.filter((m) => !m.contribution)
   const numbers = numberSources(group.replies)
+  const retried = retriedIds(group.replies)
   const columns = expanded ? 1 : columnsFor(width)
   const expandable = cards.some(
     (m) => m.contribution!.blocks.length > 1 || m.contribution!.blocks[0]?.text.length > 220,
   )
   return (
-    <section aria-label={first ? 'Opening turn' : 'Turn'} className="flex flex-col gap-4">
+    <section
+      aria-label={first ? 'Opening turn' : 'Turn'}
+      className="flex min-w-0 flex-col gap-4 [overflow-wrap:anywhere]"
+    >
       {group.user && <UserMessage message={group.user} first={first} />}
       <div
         ref={ref}
@@ -516,6 +527,7 @@ export function TurnGroup({
             user={group.user}
             numbers={numbers}
             expanded={expanded}
+            retried={retried.has(m.id)}
           />
         ))}
       </div>

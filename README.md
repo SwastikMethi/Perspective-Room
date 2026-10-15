@@ -112,7 +112,8 @@ docker compose --profile dev up -d db-dev
 (cd frontend && npm run typecheck && npm test && npm run check:api)
 (cd frontend && npx playwright install chromium && npx playwright test)   # builds, serves demo mode on :8010
 (cd frontend && npx playwright test --project screenshots)     # rewrites docs/screenshots/
-RUN_LIVE=1 docker compose exec app python -m app.cli smoke-live --probe   # live, with keys
+docker compose exec app python -m app.cli smoke-live --probe   # live, with keys; asks first
+(cd backend && RUN_LIVE=1 uv run pytest -c pyproject.toml ../tests/live)   # same check via pytest
 ```
 
 Backend tests create and drop their own `perspective_test` database (override with

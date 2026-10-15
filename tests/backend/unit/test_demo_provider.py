@@ -143,3 +143,16 @@ async def test_fail_once_fails_the_first_attempt_per_message_then_succeeds():
     assert isinstance(ok, Structured)
     with pytest.raises(ProviderFailure):  # a different turn fails once too
         await ask(gen, "contribution", latest_user_message=msg, latest_user_message_id="m2")
+
+
+async def test_token_directive_fills_model_fields_with_one_unbroken_token_within_limits():
+    """Overflow walkthroughs need long unbroken model-written text (Review Focus 5)."""
+    from app.services.validation import LIMITS
+
+    gen = DemoGeneration()
+    c = (await ask(gen, "contribution", latest_user_message="[[demo:token=2000]] go")).data
+    assert " " not in c["new_angle"] and len(c["new_angle"]) == LIMITS["new_angle"] - 20
+    assert c["next_question"] and len(c["next_question"]) <= LIMITS["question"]
+    s = (await ask(gen, "summary", latest_user_message="[[demo:token=2000]] sum")).data
+    first = s["sections"][0]["items"][0]["text"]
+    assert " " not in first and len(first) <= LIMITS["item"]

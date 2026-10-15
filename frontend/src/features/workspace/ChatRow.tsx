@@ -77,18 +77,17 @@ export function ChatMenuItems({ chat, onDeleted }: { chat: ChatSummary; onDelete
       {chat.is_archived ? (
         <MenuItem onSelect={() => void setArchived(qc, chat, false)}>Restore</MenuItem>
       ) : (
-        <MenuItem disabled={running} onSelect={() => void setArchived(qc, chat, true)}>
-          {running ? 'Archive (stop the reply first)' : 'Archive'}
+        <MenuItem onSelect={() => void setArchived(qc, chat, true)}>
+          {running ? 'Archive… (stops the reply)' : 'Archive'}
         </MenuItem>
       )}
       <MenuItem
         danger
-        disabled={running}
         onSelect={async () => {
           if (await deleteChat(qc, chat)) onDeleted?.()
         }}
       >
-        {running ? 'Delete (stop the reply first)' : 'Delete…'}
+        Delete…
       </MenuItem>
     </>
   )

@@ -16,7 +16,11 @@ if [ "$answer" != "restore" ]; then
 fi
 running="$(docker compose ps -q --status running app 2>/dev/null || true)"
 [ -n "$running" ] && docker compose stop app
-docker compose exec -T db sh -c \
-  'pg_restore --clean --if-exists --no-owner -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$file"
+if ! docker compose exec -T db sh -c \
+  'pg_restore --clean --if-exists --no-owner -U "$POSTGRES_USER" -d "$POSTGRES_DB"' < "$file"; then
+  [ -n "$running" ] && docker compose start app
+  echo "restore failed: the database may be partly restored; restore a known-good dump" >&2
+  exit 1
+fi
 [ -n "$running" ] && docker compose start app
 echo "restored $file"

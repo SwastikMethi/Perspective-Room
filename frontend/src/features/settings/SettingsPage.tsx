@@ -3,6 +3,9 @@ import { api, type Schemas, unwrap } from '../../api/client'
 import { useSettings } from '../../api/queries'
 import { dialogs } from '../../components/Dialogs'
 import { ThemeSwitch } from '../../components/ThemeSwitch'
+import { DRAFTS_STORAGE_KEY } from '../../stores/drafts'
+import { safeStorage } from '../../stores/safeStorage'
+import { UI_STORAGE_KEY } from '../../stores/ui'
 
 const STATUS_TEXT: Record<string, string> = {
   ok: 'Connected',
@@ -165,8 +168,8 @@ docker compose exec app python -m app.cli delete-eval <batch-id>`}
                   danger: true,
                 })
                 if (!ok) return
-                for (const k of Object.keys(localStorage))
-                  if (k.startsWith('perspective-room:')) localStorage.removeItem(k)
+                for (const k of [UI_STORAGE_KEY, DRAFTS_STORAGE_KEY, 'perspective-room:lab:v1'])
+                  safeStorage.removeItem(k) // never throws, even when storage is blocked
                 window.location.assign('/')
               }}
             >

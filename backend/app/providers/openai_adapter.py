@@ -48,6 +48,9 @@ def _retry_after(headers: httpx2.Headers) -> str | None:
     return headers.get("retry-after")
 
 
+DEFAULT_BASE_URL = "https://api.openai.com/v1"  # regional projects set OPENAI_BASE_URL instead
+
+
 class OpenAIGeneration:
     name = "openai"
 
@@ -59,7 +62,8 @@ class OpenAIGeneration:
     ) -> None:
         self.client = AsyncOpenAI(
             api_key=api_key,
-            base_url=base_url,  # None → the SDK default; set for regional (data residency) hosts
+            # Explicit, so an empty OPENAI_BASE_URL in the environment can never reach the SDK.
+            base_url=base_url or DEFAULT_BASE_URL,
             max_retries=0,
             timeout=httpx2.Timeout(300.0, connect=10.0),  # per-purpose deadlines are enforced above
             http_client=http_client,

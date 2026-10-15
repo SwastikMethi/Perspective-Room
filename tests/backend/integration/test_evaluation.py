@@ -537,3 +537,21 @@ async def test_export_uses_the_case_inputs_captured_with_the_batch(running_app, 
         await client.get(f"/api/v1/evaluations/{batch['id']}/export", params={"format": "json"})
     ).json()
     assert data["cases"][0]["idea"] != "EDITED AFTER THE RUN"
+
+
+async def test_low_confidence_fallbacks_are_counted_and_hidden_while_blind(running_app, client, db):
+    from test_orchestrator import UnsureJev, use
+
+    use(running_app, UnsureJev())
+    batch = (await create(client, case_ids=["case_01"], modes=["jev_guided"])).json()
+    await wait_batch(client, batch["id"])
+    blind = (await trials(client, batch["id"])).json()["items"]
+    codes = {c for t in blind for m in t["messages"] for c in m["warning_codes"]}
+    assert "coordination_low_confidence" not in codes
+    res = (
+        await client.get(f"/api/v1/evaluations/{batch['id']}/results", params={"reveal": "true"})
+    ).json()
+    assert any("low-confidence fixed order: 1 trial" in w for w in res["warnings"])
+    r = await client.get(f"/api/v1/evaluations/{batch['id']}/export", params={"format": "csv"})
+    [row] = list(csv.DictReader(io.StringIO(r.text)))
+    assert row["low_confidence_fallback"] == "True"

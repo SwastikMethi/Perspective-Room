@@ -62,6 +62,16 @@ provider).
   server's own origin, cross-site mutation rejection (403), JSON-only mutation bodies (415).
 - The Experiment Lab scheduler (`backend/app/workers/lab.py`) starts after crash recovery and runs
   one batch and one trial at a time through the normal turn path.
+- Cursor errors differ by kind. A bad **list** cursor (history, search, messages, sources, ideas,
+  Lab trials) is 400 `bad_request`; a cursor from another query or filter set is also 400. A bad
+  **event-stream** cursor (`Last-Event-ID` or `after` that is not an event of that run) is 409
+  `invalid_cursor`, sent before streaming starts, so the client reloads the run and messages.
+- Replies added by **Retry missing replies** publish after the replies that already exist, so a
+  retried panel round is no longer in roster order. Each such card is labeled "added by retry"
+  (`grouping.ts` `retriedIds`), and exports keep publication order.
+- Archiving or deleting a chat that is still replying asks first ("Stop and archive" / "The
+  running reply is stopped first"), cancels the run, waits until the chat is idle, then acts
+  (doc 14). The server still refuses both while a run is active.
 
 ## 3. SDK and tooling adaptations
 
@@ -290,9 +300,21 @@ checkpoint review (CPn) and final review (Final).
 - live smoke 1 (2026-10-15T04:27Z): OpenAI connection check failed "rejected the configured API key" — diagnosis without printing the key: 401 incorrect_hostname, OpenAI asked for us.api.openai.com (regional/data-residency project). No paid calls were made. Ruling: added optional OPENAI_BASE_URL (adapter base_url; documented in .env.example/README); the user approved setting it to https://us.api.openai.com/v1 (host came from the API response, so asked first) — cost if wrong: none (unset = SDK default).
 - Ruling: no reasoning-effort change needed (0 incomplete; reasoning tokens ≤ 468 per turn) — cost if wrong: none.
 
+**Final**
+
+- Ruling (declined-to-judge): Lab blinding beyond presentation (raw API, session IDs, created_at) stands — doc 09 calls blinding a presentation aid and notes §6 / report §7 disclose it — cost if wrong: a determined local owner can unblind through the raw API.
+- Ruling (declined-to-judge): the single-process notifier and 100 ms Lab polling stand — one Uvicorn worker is a spec constraint and both are ponytail-marked — cost if wrong: move to LISTEN/NOTIFY if a second process is ever added.
+- Ruling (declined-to-judge): results?reveal=true and export reveal on GET as the contract and G20 require; the UI never prefetches or refetches them and the batch ID is an unguessable UUID — cost if wrong: a stray GET reveals conditions (it is recorded as a reveal).
+- Ruling (declined-to-judge): shutdown may wait in _finalize_reliably while the database is down; Compose kills after its stop timeout and start-up recovery marks the run interrupted — cost if wrong: a slower stop in that rare case, no lost output.
+- Ruling (declined-to-judge → finding): db_backup.sh left a partial dump under a valid-looking name when pg_dump failed midway, and restoring such a file drops current data and left the app stopped — a person gets silent data loss, so it is Important by effect and fixed (see Final: fixed).
+- Ruling (declined-to-judge): brief constraints are one per line in the editor — the spec is silent and each line is shown as one constraint — cost if wrong: a multi-line constraint becomes several.
+- Ruling (declined-to-judge): WARNING_TEXT stays duplicated in backend and frontend; test_warning_texts_match_between_backend_and_frontend keeps them equal — cost if wrong: none.
+- Ruling (declined-to-judge): a deep-link (?message=) window does not take live SSE upserts of new replies; reopening the chat or loading the latest page shows them — cost if wrong: someone reading an older window does not see new replies arrive.
+- Ruling (declined-to-judge): doc 05's "uncertain → ask the user or offer Research this" is not implemented; an uncertain research answer continues on labeled assumptions and the composer's Research → Force is one click — deciding when an answer "depends on the missing fact" needs a judgment the plan never defined — cost if wrong: people miss a prompt to verify a fact their answer depends on.
+
 ## 5. Independent review findings and fixes
 
-A fresh reviewer (a separate model context) gated every checkpoint and the whole branch. Each Critical or Important finding was reproduced as a failing test before it was fixed.
+A fresh reviewer (a separate model context) gated checkpoints 1–6; the whole-branch review also gated checkpoint 7. Each Critical or Important finding was reproduced as a failing test before it was fixed. Minor findings from the whole-branch review that were not fixed are listed as deferred.
 
 - Checkpoint 1 review (fresh reviewer, opus): 0 critical, 1 important, 7 minor.
 - Checkpoint 2 review (fresh reviewer, opus): 0 critical, 2 important, 11 minor. Concurrency core confirmed (idempotency, one-active-run, lock order, Stop vs publish, claim).
@@ -300,6 +322,7 @@ A fresh reviewer (a separate model context) gated every checkpoint and the whole
 - Checkpoint 4 review (fresh reviewer, opus): 1 critical, 4 important, 6 minor — 7 reproduced by reviewer probes (ported into the suite).
 - Checkpoint 5 review (fresh reviewer, opus): 0 critical, 4 important, 10 minor — 3 important reproduced by browser probes, 1 by reading Radix.
 - Checkpoint 6 review (fresh reviewer, opus): 0 critical, 4 important, 10 minor — 3 important reproduced by probes.
+- Final review (fresh reviewer, opus, whole branch c8ff1a3..830b6ac): 1 critical, 4 important, 9 minor; Focus 3 and 4 verified end to end in the running app; verdict "ready once Critical and Important are fixed".
 
 - CP1: fixed Important — backend/.env could be baked into the image (.dockerignore root-only) — test_dockerignore_excludes_env_files_at_any_depth + test_env_file_has_one_location_at_repo_root RED→GREEN; env_file now REPO_ROOT/.env.
 - CP1: fixed minors — no-.env crash loop (DATABASE_URL falls back to AppEnv default; verified compose up without .env); banner names every missing key + unreachable-server state; README subshell commands; X-Request-ID on 500s (test asserts header); DB connect timeout 5s; enum drift guards (test_persistence_enums_match_contract) + generated-model staleness guard (test_generated_models_are_current — caught real formatting drift; gen script gained API_OUT/API_ONLY); duplicate default_selection rejected.
@@ -333,6 +356,25 @@ A fresh reviewer (a separate model context) gated every checkpoint and the whole
 - CP6: fixed I4 repairs/fallbacks unreported and "degraded" mislabeled → per-condition fallback, repair and quality-warning counts from run warnings in results and CSV columns — test_results_report_fallbacks_and_repairs RED→GREEN.
 - CP6: fixed minors — M1 denominator wording; M2 a batch is failed only when no trial produced output; M3 condition run order shuffled per case with the batch seed; M4 rating an unfinished trial → 409 trial_not_finished (test); M5 live-run confirmation fails closed; M6 elapsed = run time, not queue wait; M7 failed-trial copy + keepPreviousData on reveal; M8 queued cancel counts trials as not finished (test); M9 export uses the case inputs captured in the batch snapshot (test).
 - Task 27: fixed issues found by the walkthrough — composer combobox lacked aria-expanded (axe), a send right after a roster change self-409'd (mobile journey: send now awaits pending selection saves and uses the cached version), compact cards' hidden action row wrapped into blank space (icon buttons with names/tooltips; labels when expanded), mobile composer took three rows (one row), mobile header truncated to "Pe…" (logo; name stays for screen readers).
+- Final: fixed C1 an empty OPENAI_BASE_URL (as shipped in .env.example) broke every live OpenAI call → empty means unset and the adapter passes the default host explicitly — test_an_empty_api_host_setting_means_the_default_host RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed I1 a rejected key/unavailable model was hidden behind intake_unavailable with a doomed Retry (+ M9 Retry on a fully published stopped round) → intake_unavailable suppressed when fatal; the room shows run.error with a Settings link; Retry only when retryable and something is missing — test_a_rejected_key_at_intake_is_one_call_and_no_misleading_intake_note, runStatus.test.ts RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed I2 long unbroken model-written text overflowed the page and drawer → overflow-wrap:anywhere on the turn section, summary sections and drawer; demo token=N directive seeds long tokens — overflow.spec "unbroken model-written text…" (4 sizes), test_token_directive_* RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed I3 blocked localStorage blanked the Lab rating view and broke Clear local workspace state → safeStorage — RatingView.test.tsx RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed I4 low-confidence Jev routing was neither shown nor counted → coordination_low_confidence run note (not degraded), low_confidence_fallback counted in results/CSV and hidden while blind — test_low_confidence_routing_is_disclosed_without_degrading_the_run, test_low_confidence_fallbacks_are_counted_and_hidden_while_blind RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed M3→Important New chat auto-resent an interrupted first Send on mount → banner with Send it now / Discard the earlier send — NewChatPage.test.tsx RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed M2→Important only 30 saved ideas loaded → useIdeas loads every page — queries.test.tsx RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed M8→Important doc claims → report §6 and notes §5 state CP1–6 reviews + whole-branch review gating CP7; README live commands corrected (RUN_LIVE only for the pytest wrapper); stale App.tsx comment replaced — docs only (no test).
+- Final: fixed (declined-to-judge → finding) partial backup dump / app left stopped after a failed restore → dump renamed only on success; failed restore restarts the app and says so — test_a_backup_that_fails_midway_leaves_no_dump_behind, test_a_failed_restore_starts_the_app_again_and_says_so RED→GREEN (+ test_a_finished_backup_is_kept_under_its_final_name), suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed peer (a) Stop during memory after every reply published → nothing to retry — test_stop_during_memory_after_every_reply_leaves_nothing_to_retry RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed peer (b) retried panel replies publish after their siblings → labeled "added by retry" and documented (notes §2) — room.test retriedIds RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed peer (c) archive/delete of a running chat only showed a disabled item → offers Stop and archive / stops first on delete, then acts — workspace.spec "…offers Stop first (doc 14)" RED→GREEN, suite backend 406/406, vitest 52/52, Playwright 38/38.
+- Final: fixed peer (d) cursor errors documented in notes §2 (list 400 bad_request, SSE 409 invalid_cursor) — docs only.
+
+- Final: minor (deferred): M1 a fast double-click on Save creates two saved ideas (new idempotency key per click; no unique (session, message) constraint).
+- Final: minor (deferred): M4 model_unavailable is detected only on a 404 mentioning "model"; a 400 model_not_found would be a non-fatal invalid_request, so each slot tries once (unverified that the API returns 400).
+- Final: minor (deferred): M5 an invalid Jev key gives a 401 on every route/assessment step of a turn, labeled only "Fixed order used".
+- Final: minor (deferred): M6 saved ideas (notes up to 4,000 chars) are appended to every payload with no token budget; only required context is checked against 24,000 at submit.
+- Final: minor (deferred): M7 the 300 ms draft debounce is not implemented; each keystroke rewrites the drafts map to localStorage.
 
 ### Found by the live smoke (Task 29)
 

@@ -3,7 +3,7 @@
 Output is built from the persona profile, the move and a hash of the focus — never the canned
 `example` text. Demo-only test directives in the user's message (ignored in live mode):
   [[demo:delay=MS]] [[demo:fail=<persona|all>]] [[demo:fail_once=<persona>]] [[demo:refuse]]
-  [[demo:incomplete]] [[demo:long]]
+  [[demo:incomplete]] [[demo:long]] [[demo:token=N]]
   [[demo:jev=malformed|down]] [[demo:research=fail|empty]] [[demo:research]]
 """
 
@@ -243,7 +243,7 @@ class DemoGeneration:
                 )
         if move != "clarify":
             blocks.append({"kind": "question", "source_ids": [], "text": question})
-        return {
+        out = {
             "headline": headline if move != "clarify" else "One question first",
             "blocks": blocks,
             "referenced_message_ids": [],
@@ -251,8 +251,19 @@ class DemoGeneration:
             f"{(profile.get('priorities') or ['the idea'])[0]}.",
             "next_question": None,
         }
+        if "token" in d:  # unbroken model-written fields, within validation limits
+            token = "https://example.org/" + "z" * 360
+            out["new_angle"], out["next_question"] = token, token + "?"
+        return out
 
     def _summary(self, p: dict[str, Any], d: dict[str, str]) -> dict[str, Any]:
+        out = self._summary_base(p)
+        if "token" in d:  # one unbroken model-written item (overflow walkthroughs)
+            n = min(int(d["token"] or 1100), 1100)
+            out["sections"][0]["items"][0]["text"] = "https://example.org/" + "y" * n
+        return out
+
+    def _summary_base(self, p: dict[str, Any]) -> dict[str, Any]:
         msgs = [m for m in p.get("recent_messages", []) if m.get("role") != "user"]
 
         def item(text: str, ids: list[str], sources: list[str] | None = None) -> dict[str, Any]:

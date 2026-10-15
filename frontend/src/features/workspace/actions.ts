@@ -82,7 +82,44 @@ export async function moveChat(qc: QueryClient, chat: ChatSummary, folders: Sche
   await organize(qc, chat, { folder_id: choice || null })
 }
 
+/** doc 14: archiving or deleting a chat that is still replying stops the reply first. Resolves to
+ * the chat as it is once idle (fresh organization version), or null if it did not stop in time. */
+async function stopReply(qc: QueryClient, chat: ChatSummary): Promise<ChatSummary | null> {
+  if (!chat.active_run_id) return chat
+  try {
+    await unwrap(
+      api.POST('/api/v1/runs/{run_id}/cancel', {
+        params: { path: { run_id: chat.active_run_id } },
+      }),
+    )
+  } catch {
+    // already finished or stopping; the check below decides
+  }
+  for (let i = 0; i < 80; i++) {
+    const s = await unwrap(
+      api.GET('/api/v1/sessions/{session_id}', { params: { path: { session_id: chat.id } } }),
+    ).catch(() => null)
+    if (s && !s.active_run_id) {
+      await qc.invalidateQueries({ queryKey: keys.session(chat.id) })
+      return s
+    }
+    await new Promise((r) => setTimeout(r, 250))
+  }
+  notify('The reply is still stopping. Try again in a moment.', 'error')
+  return null
+}
+
 export async function setArchived(qc: QueryClient, chat: ChatSummary, archived: boolean) {
+  if (archived && chat.active_run_id) {
+    const ok = await dialogs.confirm({
+      title: 'This chat is still replying',
+      body: 'Stop the reply, then archive the chat? Replies already published are kept.',
+      confirmLabel: 'Stop and archive',
+    })
+    const idle = ok ? await stopReply(qc, chat) : null
+    if (!idle) return
+    chat = idle
+  }
   const ok = await organize(qc, chat, { is_archived: archived })
   if (ok) notify(archived ? 'Chat archived. Find it under Archived.' : 'Chat restored.')
 }
@@ -142,11 +179,13 @@ export async function exportChat(chat: { id: string; title: string }, format: 'm
 export async function deleteChat(qc: QueryClient, chat: ChatSummary): Promise<boolean> {
   const ok = await dialogs.confirm({
     title: `Delete “${chat.title}”?`,
-    body: 'This permanently removes the chat, its replies, saved ideas and sources from this computer. It cannot be undone.',
+    body:
+      (chat.active_run_id ? 'The running reply is stopped first. ' : '') +
+      'This permanently removes the chat, its replies, saved ideas and sources from this computer. It cannot be undone.',
     confirmLabel: 'Delete chat',
     danger: true,
   })
-  if (!ok) return false
+  if (!ok || !(await stopReply(qc, chat))) return false
   try {
     await unwrap(
       api.DELETE('/api/v1/sessions/{session_id}', { params: { path: { session_id: chat.id } } }),

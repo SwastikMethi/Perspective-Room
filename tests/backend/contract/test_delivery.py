@@ -92,3 +92,61 @@ def test_warning_texts_match_between_backend_and_frontend():
     block = copy[start : copy.index("\n}", start)]
     frontend = dict(re.findall(r"^\s+(\w+): '([^']*)',", block, re.M))
     assert frontend == WARNING_TEXT
+
+
+def _fake_docker(tmp_path: Path, exec_script: str) -> dict[str, str]:
+    """A stand-in `docker` on PATH: logs every call; `compose exec` runs exec_script."""
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    fake = bin_dir / "docker"
+    fake.write_text(
+        "#!/usr/bin/env bash\n"
+        f'echo "$*" >> "{tmp_path}/calls.log"\n'
+        'case "$*" in\n'
+        '  *"ps -q"*) echo abc123 ;;\n'
+        f"  *exec*) cat > /dev/null; {exec_script} ;;\n"
+        "esac\n"
+    )
+    fake.chmod(0o755)
+    return {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
+
+
+def _copy_script(tmp_path: Path, name: str) -> Path:
+    (tmp_path / "scripts").mkdir()
+    script = tmp_path / "scripts" / name
+    script.write_text((REPO_ROOT / "scripts" / name).read_text())
+    script.chmod(0o755)
+    return script
+
+
+def test_a_backup_that_fails_midway_leaves_no_dump_behind(tmp_path):
+    script = _copy_script(tmp_path, "db_backup.sh")
+    env = _fake_docker(tmp_path, "printf 'PGDMP partial'; exit 1")
+    r = subprocess.run(
+        [str(script)], env=env, capture_output=True, text=True, stdin=subprocess.DEVNULL
+    )
+    assert r.returncode != 0
+    assert list((tmp_path / "backups").iterdir()) == []
+
+
+def test_a_failed_restore_starts_the_app_again_and_says_so(tmp_path):
+    script = _copy_script(tmp_path, "db_restore.sh")
+    dump = tmp_path / "x.dump"
+    dump.write_text("PGDMP")
+    env = _fake_docker(tmp_path, "exit 1")
+    r = subprocess.run(
+        [str(script), str(dump)], env=env, input="restore\n", capture_output=True, text=True
+    )
+    assert r.returncode != 0
+    calls = (tmp_path / "calls.log").read_text()
+    assert "compose stop app" in calls and "compose start app" in calls
+    assert "restore failed" in r.stderr
+
+
+def test_a_finished_backup_is_kept_under_its_final_name(tmp_path):
+    script = _copy_script(tmp_path, "db_backup.sh")
+    env = _fake_docker(tmp_path, "printf 'PGDMP complete'")
+    r = subprocess.run([str(script)], env=env, capture_output=True, text=True)
+    assert r.returncode == 0, r.stderr
+    (dump,) = (tmp_path / "backups").iterdir()
+    assert dump.suffix == ".dump" and dump.read_text() == "PGDMP complete"

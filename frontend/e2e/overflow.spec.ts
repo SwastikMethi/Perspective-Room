@@ -75,3 +75,34 @@ test('long, unbroken and eight-wide content stays inside the page', async ({ pag
   const compact = Number(await group.locator('[data-columns]').getAttribute('data-columns'))
   expect(compact).toBeLessThanOrEqual(width < 640 ? 1 : width < 1100 ? 2 : 3)
 })
+
+test('unbroken model-written text (angles, questions, summaries) stays inside the page and drawer', async ({
+  page,
+}) => {
+  const s = await seedChat(page, unique('Model overflow '), { message: '[[demo:token=380]] Go' })
+  const v = (await call(page, 'GET', `/api/v1/sessions/${s.id}`)).version
+  await call(page, 'POST', `/api/v1/sessions/${s.id}/turns`, {
+    expected_version: v,
+    message: '[[demo:token=1100]] Summarize where we are.',
+    control: control({ audience: 'summary', research_override: 'off' }),
+  })
+  await waitIdle(page, s.id)
+  await page.goto(`/rooms/${s.id}`)
+  await expect(page.getByTestId('summary')).toHaveCount(1)
+  await page
+    .getByRole('region', { name: 'Opening turn' })
+    .getByRole('button', { name: 'Read full response' })
+    .click()
+  await noHorizontalOverflow(page)
+  await page.getByRole('button', { name: 'Chat options' }).click()
+  await page.getByRole('menuitem', { name: 'Brief' }).click()
+  const drawer = page.getByRole('dialog', { name: 'Chat details' })
+  for (const tab of ['Brief', 'Summary', 'Sources']) {
+    await drawer.getByRole('tab', { name: tab }).click()
+    const sideways = await drawer.evaluate((el) => {
+      const scroller = el.querySelector('[role="tabpanel"]')?.parentElement ?? el
+      return scroller.scrollWidth - scroller.clientWidth
+    })
+    expect(sideways, tab).toBeLessThanOrEqual(0)
+  }
+})

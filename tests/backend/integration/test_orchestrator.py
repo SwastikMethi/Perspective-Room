@@ -416,7 +416,7 @@ async def test_custom_title_is_never_overwritten(running_app, client, db, new_se
 async def test_stop_mid_panel_publishes_nothing_further(running_app, client, db, new_session):
     use(running_app, ScriptedJev())
     s = await new_session(selected_persona_ids=["mentor", "skeptic", "explorer", "engineer"])
-    run = await turn(client, s["id"], "[[demo:delay=700]] slow panel", audience="panel")
+    run = await turn(client, s["id"], "[[demo:delay=1500]] slow panel", audience="panel")
     async with asyncio.timeout(8):
         while not await published(db, s["id"]):
             await asyncio.sleep(0.05)
@@ -599,3 +599,46 @@ async def test_fatal_provider_error_stops_the_rest_of_the_turn(
     calls = [p for p, _ in await purposes(db, run["id"])]
     assert calls.count("draft") == 1 and "memory" not in calls and "repair" not in calls
     assert final.status == "failed" and final.error["code"] == "provider_not_ready"
+
+
+async def test_a_rejected_key_at_intake_is_one_call_and_no_misleading_intake_note(
+    running_app, client, db, new_session
+):
+    """Review Focus 1: the first call (intake) is refused → the turn ends with the sanitized
+    error only; no 'read without intake' note that hides the real cause."""
+    use(running_app, ScriptedJev())
+    recording(
+        running_app,
+        fail_purposes={"intake"},
+        failure=ProviderFailure("provider_not_ready", "bad key", status=401),
+    )
+    s = await new_session()
+    final = await wait_done(db, (await turn(client, s["id"]))["id"])
+    calls = [p for p, _ in await purposes(db, final.id)]
+    assert calls == ["intake"]
+    assert final.status == "failed" and final.error["code"] == "provider_not_ready"
+    assert final.error["retryable"] is False
+    assert "intake_unavailable" not in final.warning_codes
+
+
+class UnsureJev(ScriptedJev):
+    """Valid answers, all below the 0.35 routing threshold."""
+
+    async def ask(self, state, questions, model=None):
+        out = await super().ask(state, questions, model)
+        for a in out["answers"].values():
+            if a["type"] == "choice":
+                a["confidence"] = 0.2
+        return out
+
+
+async def test_low_confidence_routing_is_disclosed_without_degrading_the_run(
+    running_app, client, db, new_session
+):
+    """doc 05 step 6 / doc 03: an unsure Jev means the fixed fallback, and the UI says so."""
+    use(running_app, UnsureJev())
+    s = await new_session()
+    final = await wait_done(db, (await turn(client, s["id"]))["id"])
+    assert final.status == "completed" and len(await published(db, s["id"])) == 3
+    assert "coordination_low_confidence" in final.warning_codes
+    assert final.degraded is False

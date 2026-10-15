@@ -57,17 +57,17 @@ formula-safe CSV and JSON exports; `eval-run`, `export-eval`, `delete-eval` comm
 migrations and config validation at start), trusted-host and cross-site/JSON request guards,
 backup/restore scripts, `validate-config`, `export-session` and `smoke-live` commands.
 
-## 2. Commands run and results (2026-10-15)
+## 2. Commands run and results (2026-10-15, after the final fix pass)
 
 | Check | Command | Result |
 | --- | --- | --- |
 | Handoff package | `python3 handoff/validation/validate_handoff.py` | passed, 630 checks |
-| Backend tests (real PostgreSQL 16, demo providers) | `cd backend && uv run pytest -W error` | **397 passed** |
+| Backend tests (real PostgreSQL 16, demo providers) | `cd backend && uv run pytest -W error` | **406 passed** |
 | Backend lint / format / types | `uv run ruff check . ../tests`, `ruff format --check`, `mypy app` | clean (57 source files) |
 | Frontend types | `npx tsc --noEmit` | clean |
-| Frontend unit tests | `npx vitest run` | **41 passed** (14 files) |
+| Frontend unit tests | `npx vitest run` | **52 passed** (18 files) |
 | Contract types current | `npm run check:api` | no drift |
-| Browser tests, 1440×900 / 1920×1080 / 1024×768 / 390×844 | `npx playwright test --project desktop --project wide --project laptop --project mobile` | **33 passed** |
+| Browser tests, 1440×900 / 1920×1080 / 1024×768 / 390×844 | `npx playwright test --project desktop --project wide --project laptop --project mobile` | **38 passed** |
 | Screenshots | `npx playwright test --project screenshots` | 12 images written to `docs/screenshots/` |
 | Accessibility | axe (WCAG 2.1 A/AA, serious + critical) on New chat, Room, Chats, Personalities, Settings, Lab and the open drawer, both themes; keyboard-only room; reduced motion; 200 % zoom | no violations; all pass |
 | Compose stack | `docker compose up --build -d` | healthy; only `127.0.0.1:8000` published, database unpublished |
@@ -183,9 +183,34 @@ a three-row mobile composer, a truncated mobile header) were fixed and the image
 
 ## 6. Independent reviews
 
-A fresh reviewer gated each of the seven checkpoints; every Critical and Important finding was
-reproduced as a failing test before being fixed (details in IMPLEMENTATION_NOTES.md §5). The
-whole-branch review is recorded there as well.
+A fresh reviewer gated checkpoints 1–6. Checkpoint 7 (browser suite, security, live smoke, docs)
+was gated by the whole-branch review of `c8ff1a3..830b6ac`, which found 1 critical, 4 important
+and 9 minor issues. Every Critical and Important finding was reproduced as a failing test before
+it was fixed (details in IMPLEMENTATION_NOTES.md §5). Fixed in the final pass:
+
+- **An empty `OPENAI_BASE_URL` (as shipped in `.env.example`) broke every live OpenAI call** on
+  standard projects. Empty now means the default host.
+- **A rejected key or unavailable model was hidden in the room** behind a misleading intake note,
+  and a Retry that could not work was offered. The room now shows the error with a link to
+  Settings → Check connection, and offers no Retry when the error is not retryable or nothing is
+  missing.
+- **Long unbroken model-written text** (summary items, `new_angle`, `next_question`, Brief and
+  Summary tabs) overflowed the page. It now wraps; the overflow spec covers it at four sizes.
+- **Blocked browser storage blanked the Lab rating view** and broke *Clear local workspace
+  state*. Both use the guarded storage wrapper.
+- **Low-confidence Jev routing was neither shown nor counted.** It now adds a run note and is
+  counted separately in Lab results and the CSV (`low_confidence_fallback`), hidden while blind.
+- **New chat re-sent an unfinished first Send by itself on page load** (paid work on route mount).
+  It now asks: *Send it now* or *Discard the earlier send*.
+- **Only the first 30 saved ideas loaded**, giving a wrong bookmark state. All pages load.
+- **A failed backup left a partial dump under a valid-looking name**, and a failed restore left
+  the app stopped. The dump is renamed only on success; a failed restore restarts the app and says
+  the database may be partly restored.
+- From a separate plan audit: Stop during the memory stage leaves nothing to retry (tested);
+  replies added by a retry are labeled "added by retry"; archiving or deleting a running chat
+  offers to stop it first.
+
+Five minor findings were deferred (§7).
 
 ## 7. Limitations and what is not verified
 
@@ -203,3 +228,7 @@ whole-branch review is recorded there as well.
   Jev-only clarification can hint at condition C.
 - Portrait crops come from the 1.5 MB approved mockup images (preloaded after start).
 - The browser tests ran on Chromium only.
+- Deferred minor findings from the final review: a fast double-click on save can create two
+  saved ideas; `model_unavailable` is recognized only on a 404; an invalid Jev key is retried on
+  every step of a turn (shown only as "Fixed order used"); saved-idea notes have no token budget
+  beyond the submit-time check; drafts are written on every keystroke (no 300 ms debounce).

@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { api, ApiError, newIdempotencyKey, type Schemas, unwrap } from '../../api/client'
 import { dialogs, notify, primaryButton, secondaryButton } from '../../components/Dialogs'
 import { shortLabel } from '../../lib/personas'
+import { safeStorage } from '../../stores/safeStorage'
 
 const RUBRIC = {
   useful_breadth: [
@@ -240,7 +241,7 @@ function RatingForm({
 export function RatingView({ batch }: { batch: Schemas['Evaluation'] }) {
   const qc = useQueryClient()
   const [revealed, setRevealed] = useState(false)
-  const [alias, setAlias] = useState(() => localStorage.getItem(ALIAS_KEY) ?? '')
+  const [alias, setAlias] = useState(() => String(safeStorage.getItem(ALIAS_KEY) ?? ''))
   const [saved, setSaved] = useState<Record<string, number>>({})
   const active = batch.status === 'queued' || batch.status === 'running'
   const trials = useQuery({
@@ -279,11 +280,7 @@ export function RatingView({ batch }: { batch: Schemas['Evaluation'] }) {
             maxLength={80}
             onChange={(e) => {
               setAlias(e.target.value)
-              try {
-                localStorage.setItem(ALIAS_KEY, e.target.value)
-              } catch {
-                /* alias stays in memory */
-              }
+              safeStorage.setItem(ALIAS_KEY, e.target.value) // memory fallback if blocked
             }}
             placeholder="e.g. rater-a (not your full name)"
             className="mt-1 w-64 rounded-control border border-border bg-canvas px-3 py-2"
