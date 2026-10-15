@@ -1,5 +1,5 @@
 import { expect, type Page, test } from '@playwright/test'
-import { unique } from './helpers'
+import { unique, waitIdle } from './helpers'
 
 // doc 10 §Browser walkthrough, end to end, at every configured viewport.
 
@@ -9,10 +9,16 @@ async function lastGroup(page: Page) {
   return page.getByRole('region', { name: 'Turn', exact: true }).last()
 }
 
+/** Sends and waits for the whole round to finish (Send is still visible right after the click). */
 async function send(page: Page, text: string) {
   const box = page.getByLabel('Message', { exact: true })
   await box.fill(text)
+  const accepted = page.waitForResponse(
+    (r) => r.request().method() === 'POST' && /\/turns$/.test(new URL(r.url()).pathname),
+  )
   await page.getByRole('button', { name: 'Send', exact: true }).click()
+  expect((await accepted).status()).toBe(202)
+  await waitIdle(page, new URL(page.url()).pathname.split('/rooms/')[1])
   await expect(page.getByRole('button', { name: 'Send', exact: true })).toBeVisible({
     timeout: 20_000,
   })
