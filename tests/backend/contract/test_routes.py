@@ -9,17 +9,7 @@ from contract_support import spec
 from app.main import create_app
 
 # Operations not routed yet. Each router task removes its entries; Task 28 asserts this is empty.
-PENDING: set[str] = {
-    "listEvaluationCases",
-    "createEvaluation",
-    "listEvaluations",
-    "getEvaluation",
-    "cancelEvaluation",
-    "listTrials",
-    "createRating",
-    "getEvaluationResults",
-    "exportEvaluation",
-}
+PENDING: set[str] = set()
 
 
 def _ops(doc: dict[str, Any]) -> dict[str, tuple[str, str, dict[str, Any]]]:
@@ -77,3 +67,7 @@ def test_pending_operations_are_really_unrouted():
     routed = {op["operationId"] for item in _app_doc()["paths"].values() for op in item.values()}
     assert not (PENDING & routed), f"remove from PENDING: {sorted(PENDING & routed)}"
     assert PENDING <= set(CONTRACT), sorted(PENDING - set(CONTRACT))
+
+
+def test_every_contract_operation_is_routed():
+    assert PENDING == set()  # Task 28: nothing in the contract is left unimplemented

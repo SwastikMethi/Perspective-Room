@@ -130,5 +130,7 @@ async def new_session(client):
 async def running_app(app):
     """The app with its real worker and the configured (demo) pipeline running."""
     await app.state.runner.start()
+    await app.state.lab.start()
     yield app
+    await app.state.lab.stop()
     await app.state.runner.stop()

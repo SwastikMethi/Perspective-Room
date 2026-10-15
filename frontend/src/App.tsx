@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router'
 import { AppShell } from './components/AppShell'
 import { FolderPage } from './features/folders/FolderPage'
+import { LabPage } from './features/lab/LabPage'
 import { PersonalitiesPage } from './features/personas/PersonalitiesPage'
 import { NewChatPage } from './features/rooms/NewChatPage'
 import { RoomRoute } from './features/rooms/RoomPage'
@@ -25,7 +26,7 @@ export function App() {
         <Route path="folders/:folderId" element={<FolderPage />} />
         <Route path="rooms/:id" element={<RoomRoute />} />
         <Route path="personalities" element={<PersonalitiesPage />} />
-        <Route path="lab" element={<Screen title="Experiment Lab" />} />
+        <Route path="lab" element={<LabPage />} />
         <Route path="settings" element={<SettingsPage />} />
         <Route path="*" element={<Screen title="Page not found" />} />
       </Route>
