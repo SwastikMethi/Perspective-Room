@@ -15,20 +15,18 @@ every design decision is in [IMPLEMENTATION_NOTES.md](IMPLEMENTATION_NOTES.md).
 ## Quick start (Docker)
 
 ```bash
-cp .env.example .env
+./start.sh
 ```
 
-Then edit `.env`:
+On Windows, run this from Git Bash or WSL. The script checks Docker, creates `.env` from
+`.env.example` if needed, then builds and starts the containers. Edit `.env` and rerun
+`./start.sh` after changing its settings:
 
 - **Live mode** (default): set `OPENAI_API_KEY` and `TYPESAFE_API_KEY`. Keys stay on the server;
   they never reach the browser, logs or exports.
 - **Demo mode**: set `APP_PROVIDER_MODE=demo` instead. Replies come from labeled deterministic
   fixtures and the app makes zero external calls. Demo output is never mixed with live output and
   never replaces a live failure.
-
-```bash
-docker compose up --build -d
-```
 
 Open <http://127.0.0.1:8000>. On start the app waits for PostgreSQL, runs `alembic upgrade head`,
 validates the personality configuration and starts one Uvicorn worker. Only `127.0.0.1:8000` is
